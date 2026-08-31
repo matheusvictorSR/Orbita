@@ -1051,22 +1051,6 @@ details.av-mais > summary .chevron{ transition: transform .3s var(--mola); }
 details.av-mais[open] > summary .chevron{ transform: rotate(90deg); }
 .av-i{ padding-bottom: 8px; animation: sobe .4s var(--mola) backwards; }
 
-/* aviso de protótipo */
-.aviso{
-  position:fixed; right: 20px; bottom: 18px; z-index: 60;
-  display:flex; align-items:center; gap:11px;
-  background: rgba(14,14,22,.86);
-  backdrop-filter: blur(16px) saturate(180%);
-  -webkit-backdrop-filter: blur(16px) saturate(180%);
-  color:#fff; border-radius: 14px; padding: 9px 10px 9px 15px;
-  box-shadow: var(--s-3);
-  font-size: 12px;
-}
-.aviso b{ font-weight:700; }
-.aviso span{ opacity:.72; }
-.aviso .b{ height:28px; padding:0 11px; font-size:11.5px; border-radius:9px; background: rgba(255,255,255,.14); color:#fff; }
-.aviso .b:hover{ background: rgba(255,255,255,.24); }
-
 /* ==========================================================
    LOGIN — tela cheia, cobre o app inteiro até autenticar
    ========================================================== */
@@ -1132,12 +1116,6 @@ details.av-mais[open] > summary .chevron{ transform: rotate(90deg); }
   text-align:center; font-size:12.5px; font-weight:650; color:var(--erro);
   margin-top:12px;
 }
-.login-nota{
-  font-size:11px; color:var(--tinta-3); text-align:center; line-height:1.5;
-  margin-top:24px; padding-top:16px; border-top:1px solid var(--borda);
-}
-.login-nota b{ color:var(--tinta-2); font-weight:700; }
-
 @keyframes treme{
   10%,90%{ transform: translateX(-1px); }
   20%,80%{ transform: translateX(2px); }
@@ -1235,14 +1213,11 @@ var PERFIL_REAL = null;
    (e nunca desalinhar) a lista que o banco também aceita. */
 var CORES_PESSOA = TONS_ORDEM.map(function(k){ return { tom:k, hex:TONS[k].cb }; });
 
-/* Espaços e Projetos vêm do Supabase agora (ver carregarEspacos()
-   e carregarProjetos()) — nascem vazios, ficam vazios até alguém
-   criar o primeiro pela própria ferramenta.
-
-   Tarefas, entregas, sprints, comentários e anexos AINDA não —
-   continuam só em memória por enquanto (etapa seguinte). Nascem
-   vazios aqui também, para não sobrar nenhuma referência morta
-   apontando pra um projeto fictício que deixou de existir. */
+/* Espaços, Projetos, Tarefas, Sprints, Entregas, comentários e
+   anexos vêm todos do Supabase (ver carregarEspacos(),
+   carregarProjetos(), carregarSprints(), carregarEntregas() e
+   carregarTarefas()) — nascem vazios aqui, e são preenchidos
+   depois do login. */
 var ESPACOS = [];
 var PROJETOS = [];
 var TAREFAS = [];
@@ -1311,9 +1286,7 @@ function pessoa(id){ for(var i=0;i<EQUIPE.length;i++){ if(EQUIPE[i].id===id) ret
 function espaco(id){ for(var i=0;i<ESPACOS.length;i++){ if(ESPACOS[i].id===id) return ESPACOS[i]; } return null; }
 function projeto(id){ for(var i=0;i<PROJETOS.length;i++){ if(PROJETOS[i].id===id) return PROJETOS[i]; } return null; }
 function tarefa(id){ for(var i=0;i<TAREFAS.length;i++){ if(TAREFAS[i].id===id) return TAREFAS[i]; } return null; }
-/* "Você" é quem fez login — não existe mais uma pessoa fixa. */
-/* "Você" é a pessoa de verdade logada — não vem mais de EQUIPE
-   (isso continua fictício, só para os dados de demonstração). */
+/* "Você" é a pessoa de verdade logada, vinda de PERFIL_REAL. */
 function eu(){ return PERFIL_REAL || EQUIPE[0]; }
 
 function tomDe(espId){ var e = espaco(espId); return TONS[e ? e.tom : TOM_MARCA]; }
@@ -2442,12 +2415,6 @@ function vModalEntrega(){
   '</div>';
 }
 
-function vAviso(){
-  return '<div class="aviso"><span><b>Protótipo.</b> Tudo aqui é real e fica salvo — '+
-    'Espaços, Projetos, Tarefas, Sprints, Entregas, comentários e anexos.</span>'+
-    '<button class="b" data-a="recarregar">Recarregar</button></div>';
-}
-
 /* ==========================================================
    LOGIN
    Sem servidor, o "login" é seleção de perfil + PIN de teatro —
@@ -2531,7 +2498,6 @@ function vLogin(){
       '<p class="login-sub">'+sub+'</p>'+
       corpo+
       (rodapeTroca ? '<div style="margin-top:18px;text-align:center">'+rodapeTroca+'</div>' : '')+
-      '<p class="login-nota">Sua conta é real e fica guardada. Os projetos e tarefas que você vai ver ainda são de demonstração — entram de verdade na próxima etapa.</p>'+
     '</div></div>';
 }
 
@@ -2792,7 +2758,7 @@ function render(){
   var html = vLateral() +
     '<main class="principal">' + vTopo() +
       '<div class="conteudo' + (animar ? ' animar' : '') + '">' + corpo + '</div>' +
-    '</main>' + vAviso();
+    '</main>';
 
   if(E.modal){
     var m = '';
@@ -3390,9 +3356,7 @@ var ACOES = {
       render();
     })();
     return false;
-  },
-
-  'recarregar': function(){ location.reload(); return false; }
+  }
 };
 
 /* ==========================================================
