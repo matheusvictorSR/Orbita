@@ -164,15 +164,11 @@ ul{ margin:0; padding:0; list-style:none; }
   border-right: 1px solid var(--borda);
 }
 
-.marca{ display:flex; align-items:center; gap:10px; padding: 20px 18px 16px; }
+.marca{ display:flex; align-items:center; gap:8px; padding: 20px 18px 16px; }
 /* A logo é a identidade do produto — fica sempre no azul de marca,
-   não segue o acento vivo do Espaço (esse é só para navegação). */
-.marca-p{
-  width: 26px; height: 26px; border-radius: 9px; flex:none;
-  background: #fff; border: 1px solid var(--borda);
-  display:grid; place-items:center;
-  box-shadow: 0 3px 10px -4px rgba(91,75,255,.45);
-}
+   não segue o acento vivo do Espaço (esse é só para navegação).
+   Sem moldura: o desenho é a logo, não um ícone dentro de um chip. */
+.marca-p{ flex:none; display:grid; place-items:center; }
 .marca-p svg{ display:block; }
 .marca-n{ font-size: 16.5px; font-weight:800; letter-spacing:-.032em; }
 
@@ -1073,8 +1069,8 @@ details.av-mais[open] > summary .chevron{ transform: rotate(90deg); }
   padding: 32px 30px 26px;
   animation: folhaEntra .5s var(--mola) backwards;
 }
-.login-marca{ display:flex; align-items:center; gap:10px; justify-content:center; margin-bottom:22px; }
-.login-marca .marca-p{ width:28px; height:28px; }
+.login-marca{ display:flex; align-items:center; gap:8px; justify-content:center; margin-bottom:22px; }
+.login-marca .marca-p svg{ width:26px; height:26px; }
 .login-marca .marca-n{ font-size:18px; }
 .login-titulo{ font-size:21px; text-align:center; letter-spacing:-.026em; }
 .login-sub{ font-size:13px; color:var(--tinta-2); text-align:center; margin-top:5px; }
@@ -1352,7 +1348,7 @@ function prazoCls(t){
 }
 function horaTxt(h){
   if(h < 1) return 'agora';
-  if(h < 24) return h+'h';
+  if(h < 24) return Math.round(h)+'h';
   var d = Math.round(h/24);
   return d === 1 ? 'ontem' : d+'d';
 }
@@ -1472,11 +1468,10 @@ function equipeDo(pid){
 
 /* ---------- ícones ---------- */
 var I = {
-  logo:  '<svg width="17" height="17" viewBox="0 0 32 32" fill="none" aria-hidden="true">'+
-         '<ellipse cx="16" cy="17" rx="12.5" ry="4.8" transform="rotate(-20 16 17)" stroke="#5B4BFF" stroke-width="1.8"/>'+
-         '<circle cx="13" cy="18" r="6.4" fill="#5B4BFF"/>'+
-         '<rect x="22.6" y="8.7" width="5.2" height="1.7" rx="0.85" transform="rotate(-20 25.2 9.55)" fill="#5B4BFF"/>'+
-         '<circle cx="25.2" cy="9.55" r="2.1" fill="#5B4BFF"/>'+
+  logo:  '<svg width="23" height="23" viewBox="0 0 40 32" fill="none" aria-hidden="true">'+
+         '<ellipse cx="16" cy="17" rx="14.5" ry="5.8" transform="rotate(-16 16 17)" stroke="#5B4BFF" stroke-width="2.3"/>'+
+         '<circle cx="16" cy="17" r="7.4" fill="#5B4BFF"/>'+
+         '<circle cx="31.3" cy="12.3" r="3.1" fill="#5B4BFF"/>'+
          '</svg>',
   casa:  '<svg width="16" height="16" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M3.5 8.6 10 3.4l6.5 5.2v7a1.4 1.4 0 0 1-1.4 1.4H4.9a1.4 1.4 0 0 1-1.4-1.4v-7Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>',
   tique: '<svg width="11" height="11" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M2.4 6.2 4.8 8.7 9.6 3.4" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
@@ -1703,7 +1698,7 @@ function vInicio(){
 function vEspaco(){
   var e = espaco(E.espacoAberto), tom = TONS[e.tom];
   var proj = projetosDe(e.id);
-  var abertas = TAREFAS.filter(function(t){ return t.s!=='feito' && projeto(t.p).esp === e.id; });
+  var abertas = TAREFAS.filter(function(t){ var p = projeto(t.p); return t.s!=='feito' && p && p.esp === e.id; });
   var atrasadas = abertas.filter(function(t){ return t.d < 0; }).length;
 
   var cartoes = proj.map(function(p,i){
@@ -1740,7 +1735,8 @@ function vEspaco(){
 function equipeDoEspaco(eid){
   var v={}, o=[];
   TAREFAS.forEach(function(t){
-    if(projeto(t.p).esp!==eid) return;
+    var p = projeto(t.p);
+    if(!p || p.esp!==eid) return;
     (t.qs||[]).forEach(function(id){ if(!v[id]){ v[id]=1; o.push(pessoa(id)); } });
   });
   return o.filter(Boolean);
@@ -2597,8 +2593,27 @@ async function tentarCadastrar(){
   // sucesso: onAuthStateChange autentica e renderiza
 }
 
+/* Logo depois do login, a sessão às vezes ainda não terminou de
+   anexar o token na primeira leva de consultas — uma ou outra
+   volta com 401 mesmo estando tudo certo. Sem nova tentativa, o
+   array correspondente ficava vazio e o resto do app, que conta
+   com ele já preenchido, travava tentando ler algo que sumiu. */
+async function consultar(fabrica, tentativas){
+  tentativas = tentativas || 2;
+  var r;
+  for(var i=0; i<tentativas; i++){
+    r = await fabrica();
+    if(!r.error) return r;
+    if(i < tentativas-1) await new Promise(function(res){ setTimeout(res, 500); });
+  }
+  console.error('Consulta falhou mesmo tentando de novo:', r.error);
+  return r;
+}
+
 async function carregarPerfilReal(userId){
-  var r = await sb.from('pessoas').select('id, nome, iniciais, cor, ausente, admin').eq('id', userId).maybeSingle();
+  var r = await consultar(function(){
+    return sb.from('pessoas').select('id, nome, iniciais, cor, ausente, admin').eq('id', userId).maybeSingle();
+  });
   if(r.data){ PERFIL_REAL = r.data; }
 }
 
@@ -2606,7 +2621,9 @@ async function carregarPerfilReal(userId){
    escolha de responsável...) some da EQUIPE fictícia e passa a
    vir de quem realmente tem conta. */
 async function carregarPessoasReais(){
-  var r = await sb.from('pessoas').select('id, nome, iniciais, cor, ausente').order('criado_em');
+  var r = await consultar(function(){
+    return sb.from('pessoas').select('id, nome, iniciais, cor, ausente').order('criado_em');
+  });
   if(r.data){
     EQUIPE.length = 0;
     r.data.forEach(function(row){
@@ -2616,7 +2633,9 @@ async function carregarPessoasReais(){
 }
 
 async function carregarEspacos(){
-  var r = await sb.from('espacos').select('id, nome, tom, descricao').order('criado_em');
+  var r = await consultar(function(){
+    return sb.from('espacos').select('id, nome, tom, descricao').order('criado_em');
+  });
   if(r.data){
     ESPACOS.length = 0;
     r.data.forEach(function(row){
@@ -2630,7 +2649,9 @@ async function carregarEspacos(){
    — offDe()/isoDe() (definidas mais abaixo) são o adaptador entre
    os dois formatos, só nessa borda de leitura/escrita. */
 async function carregarProjetos(){
-  var r = await sb.from('projetos').select('id, espaco_id, nome, descricao, prazo').order('criado_em');
+  var r = await consultar(function(){
+    return sb.from('projetos').select('id, espaco_id, nome, descricao, prazo').order('criado_em');
+  });
   if(r.data){
     PROJETOS.length = 0;
     r.data.forEach(function(row){
@@ -2643,7 +2664,9 @@ async function carregarProjetos(){
 }
 
 async function carregarSprints(){
-  var r = await sb.from('sprints').select('id, projeto_id, numero, inicio, fim').order('inicio');
+  var r = await consultar(function(){
+    return sb.from('sprints').select('id, projeto_id, numero, inicio, fim').order('inicio');
+  });
   if(r.data){
     SPRINTS.length = 0;
     r.data.forEach(function(row){
@@ -2653,7 +2676,9 @@ async function carregarSprints(){
 }
 
 async function carregarEntregas(){
-  var r = await sb.from('entregas').select('id, projeto_id, nome, descricao, responsavel_id, inicio, fim, situacao');
+  var r = await consultar(function(){
+    return sb.from('entregas').select('id, projeto_id, nome, descricao, responsavel_id, inicio, fim, situacao');
+  });
   if(r.data){
     ENTREGAS.length = 0;
     r.data.forEach(function(row){
@@ -2669,9 +2694,11 @@ async function carregarEntregas(){
    anexos — três tabelas à parte no banco, viram array dentro do
    objeto da tarefa aqui, do jeito que o resto do app já espera. */
 async function carregarTarefas(){
-  var rt = await sb.from('tarefas').select(
-    'id, projeto_id, entrega_id, sprint_id, dependencia_id, titulo, descricao, revisor_id, prazo, situacao, recorrencia'
-  );
+  var rt = await consultar(function(){
+    return sb.from('tarefas').select(
+      'id, projeto_id, entrega_id, sprint_id, dependencia_id, titulo, descricao, revisor_id, prazo, situacao, recorrencia'
+    );
+  });
   if(!rt.data){ return; }
 
   var ids = rt.data.map(function(row){ return row.id; });
@@ -2714,8 +2741,10 @@ async function carregarTarefas(){
 }
 
 async function carregarAtividades(){
-  var r = await sb.from('atividades').select('id, tarefa_id, autor_id, verbo, criado_em')
-    .order('criado_em', { ascending:false }).limit(22);
+  var r = await consultar(function(){
+    return sb.from('atividades').select('id, tarefa_id, autor_id, verbo, criado_em')
+      .order('criado_em', { ascending:false }).limit(22);
+  });
   if(r.data){
     FEED.length = 0;
     r.data.forEach(function(row){
