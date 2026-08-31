@@ -175,7 +175,6 @@ create table public.tarefas (
   dependencia_id  uuid references public.tarefas (id) on delete set null,
   titulo          text not null,
   descricao       text,
-  responsavel_id  uuid references public.pessoas (id) on delete set null,
   revisor_id      uuid references public.pessoas (id) on delete set null,
   prazo           date not null,
   situacao        text not null default 'afazer' check (situacao in ('afazer','fazendo','revisao','feito')),
@@ -186,7 +185,15 @@ create table public.tarefas (
 create index idx_tarefas_projeto     on public.tarefas (projeto_id);
 create index idx_tarefas_entrega     on public.tarefas (entrega_id);
 create index idx_tarefas_sprint      on public.tarefas (sprint_id);
-create index idx_tarefas_responsavel on public.tarefas (responsavel_id);
+
+-- Responsáveis: várias pessoas por tarefa, uma linha por vínculo
+-- (mesmo padrão de subtarefas/comentários/anexos).
+create table public.tarefas_responsaveis (
+  tarefa_id  uuid not null references public.tarefas (id) on delete cascade,
+  pessoa_id  uuid not null references public.pessoas (id) on delete cascade,
+  primary key (tarefa_id, pessoa_id)
+);
+create index idx_tarefas_resp_pessoa on public.tarefas_responsaveis (pessoa_id);
 
 -- ============================================================
 -- SUBTAREFAS, COMENTÁRIOS, ANEXOS
@@ -258,6 +265,7 @@ alter table public.projetos   enable row level security;
 alter table public.sprints    enable row level security;
 alter table public.entregas   enable row level security;
 alter table public.tarefas    enable row level security;
+alter table public.tarefas_responsaveis enable row level security;
 alter table public.subtarefas enable row level security;
 alter table public.comentarios enable row level security;
 alter table public.anexos     enable row level security;
@@ -306,6 +314,8 @@ create policy "equipe autenticada acessa tudo" on public.sprints
 create policy "equipe autenticada acessa tudo" on public.entregas
   for all to authenticated using (true) with check (true);
 create policy "equipe autenticada acessa tudo" on public.tarefas
+  for all to authenticated using (true) with check (true);
+create policy "equipe autenticada acessa tudo" on public.tarefas_responsaveis
   for all to authenticated using (true) with check (true);
 create policy "equipe autenticada acessa tudo" on public.subtarefas
   for all to authenticated using (true) with check (true);

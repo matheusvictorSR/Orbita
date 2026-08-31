@@ -165,13 +165,15 @@ ul{ margin:0; padding:0; list-style:none; }
 }
 
 .marca{ display:flex; align-items:center; gap:10px; padding: 20px 18px 16px; }
+/* A logo é a identidade do produto — fica sempre no azul de marca,
+   não segue o acento vivo do Espaço (esse é só para navegação). */
 .marca-p{
   width: 26px; height: 26px; border-radius: 9px; flex:none;
-  background: var(--acento);
-  transition: background .5s var(--suave);
+  background: #fff; border: 1px solid var(--borda);
   display:grid; place-items:center;
-  box-shadow: 0 3px 10px -2px color-mix(in oklab, var(--acento) 55%, transparent);
+  box-shadow: 0 3px 10px -4px rgba(91,75,255,.45);
 }
+.marca-p svg{ display:block; }
 .marca-n{ font-size: 16.5px; font-weight:800; letter-spacing:-.032em; }
 
 .nav{ flex:1; overflow-y:auto; padding: 2px 10px 16px; }
@@ -1269,7 +1271,7 @@ var E = {
   modal: null,
   erroCrud: '',
   novoTom: 'ciano',
-  novoQuem: null
+  novosQuems: []
 };
 
 /* ==========================================================
@@ -1286,6 +1288,14 @@ function pessoa(id){ for(var i=0;i<EQUIPE.length;i++){ if(EQUIPE[i].id===id) ret
 /* Nome de exibição, tolerando responsável/revisor apagado (a
    coluna vira null sozinha no banco quando a conta some). */
 function nomeDe(id){ var p = pessoa(id); return p ? p.nome : 'ninguém'; }
+/* Junta os primeiros nomes de vários responsáveis: "Ana", "Ana e
+   Bruno", "Ana, Bruno e Carla". */
+function nomesDe(ids){
+  var nomes = (ids||[]).map(function(id){ return nomeDe(id).split(' ')[0]; });
+  if(!nomes.length) return 'ninguém';
+  if(nomes.length===1) return nomes[0];
+  return nomes.slice(0,-1).join(', ') + ' e ' + nomes[nomes.length-1];
+}
 function espaco(id){ for(var i=0;i<ESPACOS.length;i++){ if(ESPACOS[i].id===id) return ESPACOS[i]; } return null; }
 function projeto(id){ for(var i=0;i<PROJETOS.length;i++){ if(PROJETOS[i].id===id) return PROJETOS[i]; } return null; }
 function tarefa(id){ for(var i=0;i<TAREFAS.length;i++){ if(TAREFAS[i].id===id) return TAREFAS[i]; } return null; }
@@ -1456,12 +1466,18 @@ function dominio(u){
 
 function equipeDo(pid){
   var v={}, o=[];
-  tarefasDe(pid).forEach(function(t){ if(!v[t.q]){ v[t.q]=1; o.push(pessoa(t.q)); } });
+  tarefasDe(pid).forEach(function(t){ (t.qs||[]).forEach(function(id){ if(!v[id]){ v[id]=1; o.push(pessoa(id)); } }); });
   return o.filter(Boolean);
 }
 
 /* ---------- ícones ---------- */
 var I = {
+  logo:  '<svg width="17" height="17" viewBox="0 0 32 32" fill="none" aria-hidden="true">'+
+         '<ellipse cx="16" cy="17" rx="12.5" ry="4.8" transform="rotate(-20 16 17)" stroke="#5B4BFF" stroke-width="1.8"/>'+
+         '<circle cx="13" cy="18" r="6.4" fill="#5B4BFF"/>'+
+         '<rect x="22.6" y="8.7" width="5.2" height="1.7" rx="0.85" transform="rotate(-20 25.2 9.55)" fill="#5B4BFF"/>'+
+         '<circle cx="25.2" cy="9.55" r="2.1" fill="#5B4BFF"/>'+
+         '</svg>',
   casa:  '<svg width="16" height="16" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M3.5 8.6 10 3.4l6.5 5.2v7a1.4 1.4 0 0 1-1.4 1.4H4.9a1.4 1.4 0 0 1-1.4-1.4v-7Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>',
   tique: '<svg width="11" height="11" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M2.4 6.2 4.8 8.7 9.6 3.4" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
   chev:  '<svg class="chevron" width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M5.4 3.2 9.2 7l-3.8 3.8" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>',
@@ -1540,7 +1556,7 @@ function vLateral(){
 
   return '<aside class="lateral">'+
     '<div class="marca">'+
-      '<span class="marca-p"></span>'+
+      '<span class="marca-p">'+I.logo+'</span>'+
       '<span class="marca-n">Órbita</span>'+
     '</div>'+
     '<nav class="nav">'+
@@ -1658,7 +1674,7 @@ function vInicio(){
         '<span class="pz-b" style="--c:'+tom.c+'"></span>'+
         '<span class="pz-c"><span class="pz-t">'+esc(t.t)+'</span>'+
         '<span class="pz-s">'+esc(e.nome)+' · '+esc(p.nome)+'</span></span>'+
-        '<span class="pz-q">'+av(pessoa(t.q),'p')+'</span>'+
+        '<span class="pz-q">'+pilha((t.qs||[]).map(pessoa).filter(Boolean),'p')+'</span>'+
         '<span class="pz-d '+prazoCls(t)+'">'+prazoTxt(t)+'</span>'+
       '</button></li>';
     }).join('');
@@ -1667,7 +1683,7 @@ function vInicio(){
   return '<div class="cab-vista" style="--i:0">'+
       '<div><h1>Bom dia, '+esc(eu().nome.split(' ')[0])+'</h1>'+
       '<p>'+DIA3[hoje.getDay()]+', '+hoje.getDate()+' de '+MES[hoje.getMonth()]+' · '+
-      TAREFAS.filter(function(t){ return t.q===eu().id && t.s!=='feito'; }).length+' tarefas suas em aberto</p></div>'+
+      TAREFAS.filter(function(t){ return (t.qs||[]).indexOf(eu().id)>-1 && t.s!=='feito'; }).length+' tarefas suas em aberto</p></div>'+
     '</div>'+
     '<div style="--i:1">'+vResumo()+'</div>'+
     '<div class="paineis" style="--i:2">'+
@@ -1723,7 +1739,10 @@ function vEspaco(){
 
 function equipeDoEspaco(eid){
   var v={}, o=[];
-  TAREFAS.forEach(function(t){ if(projeto(t.p).esp===eid && !v[t.q]){ v[t.q]=1; o.push(pessoa(t.q)); } });
+  TAREFAS.forEach(function(t){
+    if(projeto(t.p).esp!==eid) return;
+    (t.qs||[]).forEach(function(id){ if(!v[id]){ v[id]=1; o.push(pessoa(id)); } });
+  });
   return o.filter(Boolean);
 }
 
@@ -1755,7 +1774,7 @@ function vEtiquetas(t){
 function vCartaoTarefa(t, i){
   var etq = vEtiquetas(t);
 
-  var avs = av(pessoa(t.q),'p');
+  var avs = pilha((t.qs||[]).map(pessoa).filter(Boolean),'p');
   if(t.s === 'revisao' && t.revisor){
     avs += '<span class="rev-av" title="Revisa: '+esc(nomeDe(t.revisor))+'">'+av(pessoa(t.revisor),'p')+'</span>';
   }
@@ -1773,7 +1792,7 @@ function vCartaoTarefa(t, i){
 }
 
 function vLinhaTarefa(t){
-  var avs = av(pessoa(t.q),'p');
+  var avs = pilha((t.qs||[]).map(pessoa).filter(Boolean),'p');
   if(t.s === 'revisao' && t.revisor){
     avs += '<span class="rev-av" title="Revisa: '+esc(nomeDe(t.revisor))+'">'+av(pessoa(t.revisor),'p')+'</span>';
   }
@@ -2012,9 +2031,12 @@ function horasDesde(iso){
   return Math.max(0, (Date.now() - new Date(iso).getTime()) / 3600000);
 }
 
-function chipsQuem(sel, acao){
+/* multi:true faz de "sel" um array — cada clique alterna a pessoa
+   dentro dele, em vez de substituir a escolha inteira. */
+function chipsQuem(sel, acao, multi){
   return '<div class="quem">'+EQUIPE.map(function(p){
-    return '<button class="qb" data-a="'+acao+'" data-id="'+p.id+'" aria-pressed="'+(sel===p.id)+'">'+
+    var marcado = multi ? (sel||[]).indexOf(p.id)>-1 : sel===p.id;
+    return '<button class="qb" data-a="'+acao+'" data-id="'+p.id+'" aria-pressed="'+marcado+'">'+
       av(p,'p')+esc(p.nome.split(' ')[0])+(p.fora?' <span class="fora">fora</span>':'')+'</button>';
   }).join('')+'</div>';
 }
@@ -2056,7 +2078,8 @@ function vModalTarefa(t){
     '<div class="f-cab"><div>'+
       '<span class="selo" style="--c:'+tom.c+';--cd:'+tom.cd+'">'+esc(e.nome)+' · '+esc(p.nome)+'</span>'+
       (sp ? ' <span class="spr" title="Criada nesta sprint">'+I.cal+' Sprint '+sp.n+' · '+faixaSprint(sp)+'</span>' : '')+
-      '<h2 style="margin-top:10px">'+esc(t.t)+'</h2>'+trava+'</div>'+
+      '<input class="ent" data-campo="t" data-id="'+t.id+'" value="'+esc(t.t)+'" aria-label="Título da tarefa"'+
+        ' style="margin-top:10px;font-size:19px;font-weight:800;letter-spacing:-.028em;padding:6px 10px">'+trava+'</div>'+
       '<button class="f-x" data-a="fechar" aria-label="Fechar">'+I.x+'</button></div>'+
     '<div class="f-corpo">'+
 
@@ -2069,7 +2092,7 @@ function vModalTarefa(t){
 
       linhaRevisor +
 
-      '<div class="campo"><label>Responsável</label>'+chipsQuem(t.q,'quem-tarefa')+
+      '<div class="campo"><label>Responsáveis</label>'+chipsQuem(t.qs,'quem-tarefa',true)+
         '<input type="hidden" id="mt-id" value="'+t.id+'"></div>'+
 
       '<div class="campo"><label for="mt-d">Prazo</label>'+
@@ -2132,7 +2155,7 @@ function vModalRevisor(){
       '<button class="f-x" data-a="fechar" aria-label="Fechar">'+I.x+'</button></div>'+
     '<div class="f-corpo">'+
       '<div class="campo"><label>Revisor</label>'+chipsQuem(E.revisorEscolhido,'quem-revisor')+'</div>'+
-      '<p style="font-size:12.5px;color:var(--tinta-3)">Responsável pela tarefa: <b>'+esc(nomeDe(t.q))+'</b>. '+
+      '<p style="font-size:12.5px;color:var(--tinta-3)">Responsável pela tarefa: <b>'+esc(nomesDe(t.qs))+'</b>. '+
       'Vale escolher outra pessoa para revisar.</p>'+
     '</div>'+
     '<div class="f-pe"><button class="b b-f" data-a="fechar">Cancelar</button>'+
@@ -2229,7 +2252,7 @@ function vModalNovaTarefa(pid, col){
       '<div class="campo"><label for="nt-ent">Entregável <span style="font-weight:500;color:var(--tinta-3)">(opcional)</span></label>'+
         '<select class="ent" id="nt-ent">'+ opcoesEntrega(alvo, null) +'</select>'+
         '<span class="f-dica">A que item da backlog esta tarefa serve. Trocar o projeto acima atualiza a lista.</span></div>'+
-      '<div class="campo"><label>Responsável</label>'+chipsQuem(E.novoQuem,'quem-novo')+'</div>'+
+      '<div class="campo"><label>Responsáveis</label>'+chipsQuem(E.novosQuems,'quem-novo',true)+'</div>'+
       '<div class="campo"><label for="nt-d">Prazo</label>'+
         '<input class="ent" id="nt-d" type="date" value="'+isoDe(4)+'"></div>'+
       '<div class="campo"><label for="nt-desc">Descrição <span style="font-weight:500;color:var(--tinta-3)">(opcional)</span></label>'+
@@ -2365,7 +2388,7 @@ function vModalEntrega(){
             return '<button type="button" class="gt'+(t.s==='feito'?' feita':'')+'" data-a="tarefa" data-id="'+t.id+'" data-volta="1"'+
               ' style="--cf:'+COR_FASE[t.s]+'">'+
               '<span class="gt-pt"></span><span class="gt-t">'+esc(t.t)+'</span>'+
-              av(pessoa(t.q),'p')+'<span class="gt-d">'+prazoTxt(t)+'</span></button>';
+              pilha((t.qs||[]).map(pessoa).filter(Boolean),'p')+'<span class="gt-d">'+prazoTxt(t)+'</span></button>';
           }).join('')+
           '<div class="bl-l2" style="margin-top:12px">'+
             '<span class="trilho" style="--c:'+corEntrega(g)+'"><i style="width:'+pg.pct+'%"></i></span>'+
@@ -2431,7 +2454,7 @@ function vModalEntrega(){
 
 function vCarregandoAuth(){
   return '<div class="tela-login"><div class="login-marca" style="justify-content:center;margin:0">'+
-    '<span class="marca-p"></span><span class="marca-n">Órbita</span></div></div>';
+    '<span class="marca-p">'+I.logo+'</span><span class="marca-n">Órbita</span></div></div>';
 }
 
 function pinDots(valor, tamanho){
@@ -2501,7 +2524,7 @@ function vLogin(){
   }
 
   return '<div class="tela-login"><div class="login-card">'+
-      '<div class="login-marca"><span class="marca-p"></span><span class="marca-n">Órbita</span></div>'+
+      '<div class="login-marca"><span class="marca-p">'+I.logo+'</span><span class="marca-n">Órbita</span></div>'+
       '<h1 class="login-titulo">'+titulo+'</h1>'+
       '<p class="login-sub">'+sub+'</p>'+
       corpo+
@@ -2647,12 +2670,12 @@ async function carregarEntregas(){
    objeto da tarefa aqui, do jeito que o resto do app já espera. */
 async function carregarTarefas(){
   var rt = await sb.from('tarefas').select(
-    'id, projeto_id, entrega_id, sprint_id, dependencia_id, titulo, descricao, responsavel_id, revisor_id, prazo, situacao, recorrencia'
+    'id, projeto_id, entrega_id, sprint_id, dependencia_id, titulo, descricao, revisor_id, prazo, situacao, recorrencia'
   );
   if(!rt.data){ return; }
 
   var ids = rt.data.map(function(row){ return row.id; });
-  var subsPorTarefa = {}, comsPorTarefa = {}, anxPorTarefa = {};
+  var subsPorTarefa = {}, comsPorTarefa = {}, anxPorTarefa = {}, qsPorTarefa = {};
 
   if(ids.length){
     var rs = await sb.from('subtarefas').select('id, tarefa_id, titulo, concluida').in('tarefa_id', ids).order('ordem');
@@ -2672,13 +2695,18 @@ async function carregarTarefas(){
       (anxPorTarefa[row.tarefa_id] = anxPorTarefa[row.tarefa_id] || [])
         .push({ id: row.id, tipo: row.tipo, nome: row.nome, url: row.url });
     });
+
+    var rq = await sb.from('tarefas_responsaveis').select('tarefa_id, pessoa_id').in('tarefa_id', ids);
+    (rq.data || []).forEach(function(row){
+      (qsPorTarefa[row.tarefa_id] = qsPorTarefa[row.tarefa_id] || []).push(row.pessoa_id);
+    });
   }
 
   TAREFAS.length = 0;
   rt.data.forEach(function(row){
     TAREFAS.push({
       id: row.id, p: row.projeto_id, ent: row.entrega_id, spr: row.sprint_id, dep: row.dependencia_id,
-      t: row.titulo, desc: row.descricao || '', q: row.responsavel_id, revisor: row.revisor_id,
+      t: row.titulo, desc: row.descricao || '', qs: qsPorTarefa[row.id] || [], revisor: row.revisor_id,
       d: offDe(row.prazo), s: row.situacao, rep: row.recorrencia,
       subs: subsPorTarefa[row.id] || [], coments: comsPorTarefa[row.id] || [], anexos: anxPorTarefa[row.id] || []
     });
@@ -2844,8 +2872,8 @@ function verboDe(st){
 function pedirRevisor(t, voltar){
   var sugestao = t.revisor;
   if(!sugestao){
-    var livre = EQUIPE.filter(function(x){ return x.id !== t.q && !x.fora; })[0];
-    sugestao = livre ? livre.id : t.q;
+    var livre = EQUIPE.filter(function(x){ return (t.qs||[]).indexOf(x.id)===-1 && !x.fora; })[0];
+    sugestao = livre ? livre.id : (t.qs && t.qs[0]);
   }
   E.revisorEscolhido = sugestao;
   E.voltarPara = voltar || null;
@@ -3209,15 +3237,29 @@ var ACOES = {
   },
   'quem-tarefa': function(el){
     var t = tarefa(document.getElementById('mt-id').value);
-    t.q = el.getAttribute('data-id');
-    sb.from('tarefas').update({ responsavel_id:t.q }).eq('id', t.id).then(function(r){
-      if(r.error) console.error('Não consegui salvar responsável:', r.error);
-    });
+    var pid = el.getAttribute('data-id');
+    var i = (t.qs||[]).indexOf(pid);
+    if(i>-1){
+      t.qs.splice(i,1);
+      sb.from('tarefas_responsaveis').delete().eq('tarefa_id', t.id).eq('pessoa_id', pid).then(function(r){
+        if(r.error) console.error('Não consegui remover responsável:', r.error);
+      });
+    } else {
+      (t.qs = t.qs||[]).push(pid);
+      sb.from('tarefas_responsaveis').insert({ tarefa_id:t.id, pessoa_id:pid }).then(function(r){
+        if(r.error) console.error('Não consegui salvar responsável:', r.error);
+      });
+    }
   },
-  'quem-novo': function(el){ E.novoQuem = el.getAttribute('data-id'); },
+  'quem-novo': function(el){
+    var pid = el.getAttribute('data-id');
+    var i = E.novosQuems.indexOf(pid);
+    if(i>-1) E.novosQuems.splice(i,1); else E.novosQuems.push(pid);
+  },
 
   'nova-tarefa': function(el){
     E.modal = { tipo:'nova-tarefa', id: el.getAttribute('data-id') || E.projetoAberto, col: el.getAttribute('data-col') };
+    E.novosQuems = [];
   },
   'salvar-tarefa': function(){
     var tt = document.getElementById('nt-t');
@@ -3227,19 +3269,25 @@ var ACOES = {
     var sp  = sprintAtual(pid);
     var titulo = tt.value.trim();
     var desc = (document.getElementById('nt-desc').value || '').trim();
-    var quem = E.novoQuem;
+    var quems = E.novosQuems.slice();
     var prazo = offDe(document.getElementById('nt-d').value);
     var situ = (col === 'revisao' ? 'afazer' : col);
     var entId = document.getElementById('nt-ent').value || null;
     var sprId = sp ? sp.id : null;
     (async function(){
       var ins = await sb.from('tarefas').insert({
-        projeto_id: pid, titulo: titulo, descricao: desc, responsavel_id: quem,
+        projeto_id: pid, titulo: titulo, descricao: desc,
         prazo: isoDe(prazo), situacao: situ, sprint_id: sprId, entrega_id: entId
       }).select().single();
       if(ins.error){ E.erroCrud = 'Não consegui criar. Tenta de novo.'; render(); return; }
+      if(quems.length){
+        var insQ = await sb.from('tarefas_responsaveis').insert(
+          quems.map(function(pid){ return { tarefa_id: ins.data.id, pessoa_id: pid }; })
+        );
+        if(insQ.error) console.error('Não consegui salvar responsáveis:', insQ.error);
+      }
       var nova = {
-        id: ins.data.id, p:pid, t:titulo, desc:desc, q:quem, d:prazo, s:situ,
+        id: ins.data.id, p:pid, t:titulo, desc:desc, qs:quems, d:prazo, s:situ,
         spr:sprId, ent:entId, dep:null, revisor:null, rep:null,
         subs:[], coments:[], anexos:[]
       };
@@ -3424,6 +3472,7 @@ document.addEventListener('change', function(ev){
 
   var t = tarefa(id); if(!t) return;
   var patchT = null;
+  if(c === 't')    { t.t = el.value.trim() || t.t; el.value = t.t; patchT = { titulo: t.t }; }
   if(c === 'd')    { t.d = offDe(el.value); patchT = { prazo: isoDe(t.d) }; }
   if(c === 'desc') { t.desc = el.value.trim(); patchT = { descricao: t.desc }; }
   if(c === 'ent')  { t.ent = el.value || null; patchT = { entrega_id: t.ent }; }

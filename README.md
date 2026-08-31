@@ -26,7 +26,9 @@ O que o login faz:
 
 **O que ainda não existe:** criar ou apagar uma subtarefa (só marcar/desmarcar — a tela nunca teve um jeito de adicionar uma), e apagar uma sprint (só criar e corrigir datas). Nenhum dos dois foi pedido ainda; o banco já suporta os dois no dia em que forem.
 
-**Detalhe técnico:** ver `supabase-schema.sql` (e as quatro migrações numeradas, se você recriar o banco do zero, use só o schema — as migrações existem porque o schema mudou de forma ao longo da construção, sobre um banco que já existia). O schema sempre teve as dez tabelas — foi rodado por inteiro antes mesmo do login virar Auth real — então esta etapa não precisou de nenhuma migração nova, só ligar o JavaScript nas tabelas que já existiam. O cadastro aceita ou recusa o e-mail dentro de um gatilho no Postgres (`lidar_novo_usuario`), não no JavaScript — por isso a regra vale mesmo se alguém tentar burlar a tela.
+**Detalhe técnico:** ver `supabase-schema.sql` (e as cinco migrações numeradas, se você recriar o banco do zero, use só o schema — as migrações existem porque o schema mudou de forma ao longo da construção, sobre um banco que já existia). O cadastro aceita ou recusa o e-mail dentro de um gatilho no Postgres (`lidar_novo_usuario`), não no JavaScript — por isso a regra vale mesmo se alguém tentar burlar a tela.
+
+Responsável de tarefa mudou de coluna única (`tarefas.responsavel_id`) para tabela de junção (`tarefas_responsaveis`, uma linha por pessoa vinculada) na migração 5, para caber mais de uma pessoa por tarefa.
 
 ## A estrutura
 
@@ -46,9 +48,11 @@ Os cartões de resumo não são número grande com rótulo cinza. Cada um carreg
 
 ## A aposta visual
 
-**O acento do app é uma variável CSS viva.** Entrar num Espaço transiciona a cor de tudo ao mesmo tempo — logo, navegação ativa, botões, barras de progresso, anel de foco, realce dos modais. Você sabe onde está pela cor, sem ler.
+**O acento do app é uma variável CSS viva.** Entrar num Espaço transiciona a cor de tudo ao mesmo tempo — navegação ativa, botões, barras de progresso, anel de foco, realce dos modais. Você sabe onde está pela cor, sem ler.
 
 Isso só funciona porque o acento mora no elemento `<html>`, que sobrevive a cada redesenho da tela. Se ele fosse escrito junto com o conteúdo, a cor trocaria de estalo em vez de transicionar.
+
+**A logo é a exceção — fica sempre no azul de marca (`#5B4BFF`), não segue o acento do Espaço.** É a identidade do produto, não um indicador de navegação. O ícone é um planeta com um objeto em órbita, cor sólida, sem gradiente.
 
 Seis matizes disponíveis para Espaços: índigo, rosa, menta, âmbar, ciano e violeta.
 
@@ -155,7 +159,9 @@ Campo de texto livre na tarefa, para complementar a explicação. Aparece resumi
 
 ## O que dá para fazer
 
-Criar Espaço (escolhendo a cor), criar projeto, criar tarefa. Quem é admin também edita e apaga Espaço e Projeto — apagar um Espaço só funciona se ele estiver sem projetos dentro; apagar um Projeto leva junto tarefas, entregas e sprints dele, sem confirmação dupla além do aviso no próprio modal. Abrir a tarefa em modal: mudar situação, responsável e prazo, marcar subtarefas, comentar, anexar um link, e — atrás de um "mais opções" fechado — recorrência e dependência. Apagar uma tarefa leva junto suas subtarefas, comentários, anexos e o rastro dela no feed.
+Criar Espaço (escolhendo a cor), criar projeto, criar tarefa. Quem é admin também edita e apaga Espaço e Projeto — apagar um Espaço só funciona se ele estiver sem projetos dentro; apagar um Projeto leva junto tarefas, entregas e sprints dele, sem confirmação dupla além do aviso no próprio modal. Abrir a tarefa em modal: **editar o título** direto (sem restrição de quem pode), mudar situação, prazo, marcar subtarefas, comentar, anexar um link, e — atrás de um "mais opções" fechado — recorrência e dependência. Apagar uma tarefa leva junto suas subtarefas, comentários, anexos e o rastro dela no feed.
+
+**Uma tarefa pode ter mais de um responsável.** Os chips de "Responsáveis" alternam — clicar adiciona, clicar de novo remove — tanto na criação quanto dentro da tarefa já criada. O cartão e a lista mostram os avatares de todos, empilhados.
 
 Criar e corrigir datas de Sprint, com a mesma checagem de sobreposição valendo no banco. Criar, editar e apagar Entrega — apagar solta as tarefas ligadas em vez de apagá-las.
 
