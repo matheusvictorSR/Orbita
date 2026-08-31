@@ -1283,6 +1283,9 @@ function esc(s){
   });
 }
 function pessoa(id){ for(var i=0;i<EQUIPE.length;i++){ if(EQUIPE[i].id===id) return EQUIPE[i]; } return null; }
+/* Nome de exibição, tolerando responsável/revisor apagado (a
+   coluna vira null sozinha no banco quando a conta some). */
+function nomeDe(id){ var p = pessoa(id); return p ? p.nome : 'ninguém'; }
 function espaco(id){ for(var i=0;i<ESPACOS.length;i++){ if(ESPACOS[i].id===id) return ESPACOS[i]; } return null; }
 function projeto(id){ for(var i=0;i<PROJETOS.length;i++){ if(PROJETOS[i].id===id) return PROJETOS[i]; } return null; }
 function tarefa(id){ for(var i=0;i<TAREFAS.length;i++){ if(TAREFAS[i].id===id) return TAREFAS[i]; } return null; }
@@ -1496,7 +1499,12 @@ function vAnexo(a, i, tid){
   '</div>';
 }
 
+/* p pode ser null quando a pessoa que era responsável/revisora
+   apagou a própria conta — a coluna vira null sozinha no banco
+   (ON DELETE SET NULL), mas a tela continua precisando desenhar
+   alguma coisa no lugar do avatar. */
 function av(p, cls){
+  if(!p) return '<span class="av '+(cls||'')+'" style="--c:#9295A8" title="Sem responsável">?</span>';
   return '<span class="av '+(cls||'')+(p.fora?' ausente':'')+'" style="--c:'+p.cor+'" title="'+esc(p.nome)+(p.fora?' · indisponível':'')+'">'+p.ini+'</span>';
 }
 function pilha(gente, cls){
@@ -1636,7 +1644,7 @@ function vInicio(){
     var q = pessoa(f.q);
     return '<li><button class="at" data-a="tarefa" data-id="'+t.id+'">'+
       av(q,'')+
-      '<span class="at-txt"><b>'+esc(q.nome.split(' ')[0])+'</b> '+f.v+' <span class="at-alvo">'+esc(t.t)+'</span>'+
+      '<span class="at-txt"><b>'+esc(q ? q.nome.split(' ')[0] : 'alguém')+'</b> '+f.v+' <span class="at-alvo">'+esc(t.t)+'</span>'+
       '<span class="at-pe"><span class="selo" style="--c:'+tom.c+';--cd:'+tom.cd+'">'+esc(p.nome)+'</span>'+
       '<span class="at-h">'+horaTxt(horasDesde(f.criado_em))+'</span></span></span>'+
     '</button></li>';
@@ -1749,7 +1757,7 @@ function vCartaoTarefa(t, i){
 
   var avs = av(pessoa(t.q),'p');
   if(t.s === 'revisao' && t.revisor){
-    avs += '<span class="rev-av" title="Revisa: '+esc(pessoa(t.revisor).nome)+'">'+av(pessoa(t.revisor),'p')+'</span>';
+    avs += '<span class="rev-av" title="Revisa: '+esc(nomeDe(t.revisor))+'">'+av(pessoa(t.revisor),'p')+'</span>';
   }
 
   return '<div class="ct" role="button" tabindex="0" draggable="true" data-a="tarefa" data-id="'+t.id+'"'+
@@ -1767,7 +1775,7 @@ function vCartaoTarefa(t, i){
 function vLinhaTarefa(t){
   var avs = av(pessoa(t.q),'p');
   if(t.s === 'revisao' && t.revisor){
-    avs += '<span class="rev-av" title="Revisa: '+esc(pessoa(t.revisor).nome)+'">'+av(pessoa(t.revisor),'p')+'</span>';
+    avs += '<span class="rev-av" title="Revisa: '+esc(nomeDe(t.revisor))+'">'+av(pessoa(t.revisor),'p')+'</span>';
   }
   return '<li class="tl-li'+(t.s==='feito'?' feita':'')+'">'+
     '<button type="button" class="tl" data-a="tarefa" data-id="'+t.id+'">'+
@@ -2027,7 +2035,7 @@ function vModalTarefa(t){
   var cms = (t.coments||[]).map(function(c){
     var q = pessoa(c.q);
     return '<div class="cm">'+av(q,'')+'<div class="cm-c">'+
-      '<div class="cm-q"><b>'+esc(q.nome.split(' ')[0])+'</b> · '+horaTxt(horasDesde(c.criado_em))+'</div>'+
+      '<div class="cm-q"><b>'+esc(q ? q.nome.split(' ')[0] : 'alguém')+'</b> · '+horaTxt(horasDesde(c.criado_em))+'</div>'+
       '<div class="cm-t">'+esc(c.t)+'</div></div></div>';
   }).join('') || '<p style="font-size:13px;color:var(--tinta-3)">Nenhum comentário ainda.</p>';
 
@@ -2039,7 +2047,7 @@ function vModalTarefa(t){
 
   var linhaRevisor = t.s === 'revisao' && t.revisor
     ? '<div class="campo"><label>Em revisão por</label><div class="rev-l">'+
-        '<span class="rev-av">'+av(pessoa(t.revisor),'')+'</span><b>'+esc(pessoa(t.revisor).nome)+'</b>'+
+        '<span class="rev-av">'+av(pessoa(t.revisor),'')+'</span><b>'+esc(nomeDe(t.revisor))+'</b>'+
         '<button class="b b-f b-pq" data-a="pedir-revisor" data-id="'+t.id+'" style="margin-left:auto">Trocar</button>'+
       '</div></div>'
     : '';
@@ -2124,7 +2132,7 @@ function vModalRevisor(){
       '<button class="f-x" data-a="fechar" aria-label="Fechar">'+I.x+'</button></div>'+
     '<div class="f-corpo">'+
       '<div class="campo"><label>Revisor</label>'+chipsQuem(E.revisorEscolhido,'quem-revisor')+'</div>'+
-      '<p style="font-size:12.5px;color:var(--tinta-3)">Responsável pela tarefa: <b>'+esc(pessoa(t.q).nome)+'</b>. '+
+      '<p style="font-size:12.5px;color:var(--tinta-3)">Responsável pela tarefa: <b>'+esc(nomeDe(t.q))+'</b>. '+
       'Vale escolher outra pessoa para revisar.</p>'+
     '</div>'+
     '<div class="f-pe"><button class="b b-f" data-a="fechar">Cancelar</button>'+
