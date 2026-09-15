@@ -2309,12 +2309,13 @@ function vModalTarefa(t){
       '<div class="campo"><label>Responsáveis</label>'+chipsQuem(t.qs,'quem-tarefa',true)+
         '<input type="hidden" id="mt-id" value="'+t.id+'"></div>'+
 
-      '<div class="campo"><label for="mt-ini">Início</label>'+
-        '<input class="ent" id="mt-ini" type="date" value="'+isoDe(t.ini)+'" data-campo="ini" data-id="'+t.id+'">'+
-        '<span class="f-dica">Onde a barra desta tarefa começa no cronograma. Por padrão, o dia em que ela foi criada.</span></div>'+
-
-      '<div class="campo"><label for="mt-d">Prazo</label>'+
-        '<input class="ent" id="mt-d" type="date" value="'+isoDe(t.d)+'" data-campo="d" data-id="'+t.id+'"></div>'+
+      '<div class="campo"><div class="dupla">'+
+        '<div class="campo" style="margin-bottom:0"><label for="mt-ini">Início</label>'+
+          '<input class="ent" id="mt-ini" type="date" value="'+isoDe(t.ini)+'" data-campo="ini" data-id="'+t.id+'"></div>'+
+        '<div class="campo" style="margin-bottom:0"><label for="mt-d">Prazo</label>'+
+          '<input class="ent" id="mt-d" type="date" value="'+isoDe(t.d)+'" data-campo="d" data-id="'+t.id+'"></div>'+
+        '</div>'+
+        '<span class="f-dica">De onde a onde vai a barra desta tarefa no cronograma.</span></div>'+
 
       '<div class="campo"><label for="mt-ent">Entregável</label>'+
         '<select class="ent" id="mt-ent" data-campo="ent" data-id="'+t.id+'">'+
@@ -2471,11 +2472,13 @@ function vModalNovaTarefa(pid, col){
         '<select class="ent" id="nt-ent">'+ opcoesEntrega(alvo, null) +'</select>'+
         '<span class="f-dica">A que item da backlog esta tarefa serve. Trocar o projeto acima atualiza a lista.</span></div>'+
       '<div class="campo"><label>Responsáveis</label>'+chipsQuem(E.novosQuems,'quem-novo',true)+'</div>'+
-      '<div class="campo"><label for="nt-ini">Início</label>'+
-        '<input class="ent" id="nt-ini" type="date" value="'+isoDe(0)+'">'+
+      '<div class="campo"><div class="dupla">'+
+        '<div class="campo" style="margin-bottom:0"><label for="nt-ini">Início</label>'+
+          '<input class="ent" id="nt-ini" type="date" value="'+isoDe(0)+'"></div>'+
+        '<div class="campo" style="margin-bottom:0"><label for="nt-d">Prazo</label>'+
+          '<input class="ent" id="nt-d" type="date" value="'+isoDe(4)+'"></div>'+
+        '</div>'+
         '<span class="f-dica">Começa hoje, salvo se você mudar.</span></div>'+
-      '<div class="campo"><label for="nt-d">Prazo</label>'+
-        '<input class="ent" id="nt-d" type="date" value="'+isoDe(4)+'"></div>'+
       '<div class="campo"><label for="nt-desc">Descrição <span style="font-weight:500;color:var(--tinta-3)">(opcional)</span></label>'+
         '<textarea class="ent" id="nt-desc" placeholder="Complemente a explicação, se ajudar quem for executar"></textarea></div>'+
       '<input type="hidden" id="nt-col" value="'+(col||'afazer')+'">'+
