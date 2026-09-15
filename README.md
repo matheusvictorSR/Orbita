@@ -6,7 +6,7 @@ Projeto novo e independente — **não segue** o `CLAUDE.md` do Copiloto SR.
 
 ## Como abrir
 
-Duplo clique em `index.html`. Feito para computador. **Precisa de internet agora** — o login fala de verdade com um banco de dados (Supabase); antes disso não era preciso.
+Duplo clique em `index.html`. Pensado no computador, mas funciona no telefone (ver **No telefone**). **Precisa de internet agora** — o login fala de verdade com um banco de dados (Supabase); antes disso não era preciso.
 
 ## Login
 
@@ -57,6 +57,21 @@ Isso só funciona porque o acento mora no elemento `<html>`, que sobrevive a cad
 O mesmo desenho vira o ícone da aba do navegador e do atalho, em branco sobre um quadrado azul (`icone.svg` e os PNGs 32/192/512, mais `apple-touch-icon.png` para a tela de início do iPhone). O `manifest.webmanifest` é o que permite instalar o Órbita como aplicativo. Os PNGs são gerados a partir do SVG — se o desenho mudar, gerar de novo, não editar o PNG.
 
 Seis matizes disponíveis para Espaços: índigo, rosa, menta, âmbar, ciano e violeta.
+
+## No telefone
+
+São três tamanhos, não dois. **Acima de 900px** a lateral fica aberta com os nomes por extenso. **Entre 900 e 701** ela vira um trilho de 62px só com ícones — cabe, e a tela ainda é larga o bastante. **Abaixo de 700px** esse trilho deixa de fazer sentido: 62px de um telefone de 375 é um sexto da tela gasto em ícones mudos, e era ali que a navegação virava adivinhação.
+
+No telefone a lateral **deixa de ser permanente e vira gaveta**: sai da frente, devolve a largura inteira ao conteúdo e volta com os nomes por extenso quando chamada pelo botão no topo. Fecha de três jeitos — tocando fora, navegando por dentro dela, ou com Esc.
+
+O que mais mudava de forma:
+
+- A **trilha** (Início / Espaço / Projeto) quebrava em três linhas e ainda cortava. No telefone fica só onde você está; quem navega é a gaveta.
+- As **quatro abas** do projeto não cabem em 375px: rolam na horizontal, sem barra à vista.
+- O **cronograma** sobrava 122px de gráfico, quatro dias. Coluna de nomes mais curta e dia mais estreito devolvem mais de uma semana por tela.
+- Alturas passaram de `vh` para `dvh`. No celular a barra de endereço entra e sai, e `100vh` conta a tela toda — o rodapé ficava escondido atrás dela. **Era essa a tela cortada.**
+
+Conferido em 375px: zero estouro de largura nas sete telas (início, quadro, lista, cronograma, backlog, calendário, espaço), e o computador segue idêntico ao que era.
 
 ## Modo escuro
 
