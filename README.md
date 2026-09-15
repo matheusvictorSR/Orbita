@@ -58,6 +58,24 @@ O mesmo desenho vira o ícone da aba do navegador e do atalho, em branco sobre u
 
 Seis matizes disponíveis para Espaços: índigo, rosa, menta, âmbar, ciano e violeta.
 
+## Modo escuro
+
+O app se chama Órbita e a logo é um planeta, então o escuro é **céu noturno, não cinza**: o fundo puxa azul (`#0A0B12`), e as lavagens que de dia são pálidas viram poças de cor. Não é o claro invertido.
+
+Duas regras mudam de sentido no escuro. **Elevação vira claridade** — sombra não aparece sobre quase preto, então o que separa um cartão do fundo é ele ser mais claro, mais um fio de luz na borda de cima. E **texto nunca é branco puro**: `#FFF` sobre quase preto vibra na borda das letras.
+
+As **quatro baias do quadro** são o lugar onde isso mais aparece: de dia são lavagens de papel com moldura discreta; de noite, poças de cor com a moldura acesa.
+
+Onde o tema muda a decisão de cor, existem dois jogos:
+
+- `--diluente` é com o que as cores vivas são diluídas para virar lavagem — branco no claro, a própria superfície no escuro. A mesma lavagem também precisa de mais tinta no escuro (17% sobre papel branco se vê; sobre quase preto, some).
+- `--toque` é o rastro do mouse: escurece o papel no claro, acende a superfície no escuro.
+- Nos seis matizes, só `cd` (cor de texto) e `cf` (lavagem) têm variante escura — `cdE` e `cfE`. O vivo (`c`) e o sólido que carrega texto branco (`cb`) valem nos dois modos; mexer neles quebraria o contraste já calibrado.
+
+**Contraste conferido no escuro com a mesma régua de sempre: zero reprovações em AA**, varrendo início, quadro, lista, cronograma, backlog, calendário e espaço. (A mesma varredura acusa o `.selo` a 3,84 no modo **claro** — reprovação que já existia antes do modo escuro e continua de pé.)
+
+O botão fica no rodapé da barra lateral e na tela de login, e **mostra para onde leva, não onde está**: de dia oferece a lua. Enquanto ninguém escolher, o app segue o sistema; no primeiro clique passa a obedecer a pessoa e não volta atrás sozinho. A escolha é decidida antes da primeira pintura, num script no `<head>` — sem isso, quem usa o escuro levaria um flash branco a cada carregamento.
+
 Cada matiz tem **quatro tons**, e a distinção importa:
 
 | Tom | Onde entra |

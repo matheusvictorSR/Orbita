@@ -10,6 +10,23 @@
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#5B4BFF">
+<script>
+/* O tema é decidido antes da primeira pintura. Se esperasse o script
+   do fim da página, quem usa o escuro levaria um flash branco a cada
+   carregamento. */
+(function(){
+  var t = null;
+  try { t = localStorage.getItem('orbita:tema'); } catch(e){}
+  if(t !== 'claro' && t !== 'escuro'){
+    t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'escuro' : 'claro';
+  }
+  document.documentElement.setAttribute('data-tema', t);
+  if(t === 'escuro'){
+    var m = document.querySelector('meta[name="theme-color"]');
+    if(m) m.setAttribute('content', '#0A0B12');
+  }
+})();
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -63,7 +80,89 @@
   --s-4: 0 32px 80px -16px rgba(14,14,22,.30), 0 8px 24px -8px rgba(14,14,22,.14);
 
   --lateral: 254px;
+
+  /* Com o que as cores vivas são diluídas para virar lavagem. No
+     claro é o branco do papel; no escuro, a própria superfície. */
+  --diluente: #FFFFFF;
+
+  /* O rastro que o mouse deixa. Escurece o papel no claro e acende
+     a superfície no escuro — nos dois casos, aproxima. */
+  --toque:   rgba(14,14,22,.045);
+  --toque-2: rgba(14,14,22,.065);
 }
+
+/* ==========================================================
+   MODO ESCURO — não é o claro invertido
+   O app se chama Órbita e a logo é um planeta: o escuro é céu
+   noturno, não cinza. O fundo puxa azul, as superfícies sobem
+   ganhando luz (sombra não aparece no escuro, então elevação
+   vira claridade), e as lavagens que de dia são pálidas viram
+   poças de cor. Texto nunca em branco puro: #FFF sobre quase
+   preto vibra na borda das letras.
+   ========================================================== */
+:root[data-tema="escuro"]{
+  color-scheme: dark;
+
+  --fundo:        #0A0B12;
+  --sup:          #161822;
+  --sup-2:        #11131C;   /* rebaixado: campos, dias fora do mês */
+  --sup-3:        #1F2230;   /* elevado: passar o mouse, faixas */
+  --borda:        #262939;
+  --borda-2:      #383D52;
+  --tinta:        #E9EBF5;
+  --tinta-2:      #A7ABC2;
+  --tinta-3:      #9094AB;
+
+  --ok:      #45D9A2;
+  --ok-viv:  #12B76A;
+  --ok-bg:   #0E2E23;
+  --alerta:      #FFB84D;
+  --alerta-viv:  #FF9F0A;
+  --alerta-bg:   #35250E;
+  --erro:      #FF8A96;
+  --erro-viv:  #FF3B52;
+  --erro-bg:   #38161D;
+
+  --diluente: #161822;
+  --toque:   rgba(255,255,255,.055);
+  --toque-2: rgba(255,255,255,.085);
+
+  /* No escuro a sombra sozinha não separa nada: o que separa é o
+     fio de luz na borda de cima. */
+  --s-1: 0 1px 2px rgba(0,0,0,.40), inset 0 1px 0 0 rgba(255,255,255,.03);
+  --s-2: 0 3px 10px rgba(0,0,0,.45), inset 0 1px 0 0 rgba(255,255,255,.04);
+  --s-3: 0 14px 36px -10px rgba(0,0,0,.65), inset 0 1px 0 0 rgba(255,255,255,.05);
+  --s-4: 0 36px 90px -18px rgba(0,0,0,.80), inset 0 1px 0 0 rgba(255,255,255,.06);
+}
+
+/* A mesma lavagem precisa de mais tinta no escuro: 17% de cor sobre
+   papel branco já é visível, sobre quase preto some. */
+:root[data-tema="escuro"] .selo{ background: color-mix(in oklab, var(--c) 26%, var(--diluente)); }
+:root[data-tema="escuro"] .anx-i{ background: color-mix(in oklab, var(--ai) 28%, var(--diluente)); }
+
+/* Vidro fosco: no claro é papel translúcido sobre o gradiente, no
+   escuro é o próprio escuro deixando a nebulosa passar. */
+:root[data-tema="escuro"] .lateral{ background: rgba(18,20,30,.72); }
+:root[data-tema="escuro"] .veu{ background: rgba(0,0,0,.58); }
+
+/* Apagar é destrutivo: precisa do vermelho que carrega texto branco,
+   não do vermelho claro que o escuro usa para ler em cima do fundo. */
+:root[data-tema="escuro"] .b-perigo-solido{ background: var(--erro-viv); }
+
+/* As quatro baias do quadro. No claro são lavagens de papel; no
+   escuro viram poças de cor com a moldura acesa. Os mesmos quatro
+   tokens servem aos grupos da Lista. */
+:root[data-tema="escuro"] .col-afazer,
+:root[data-tema="escuro"] .lg-afazer  { --ct:#A8C8FF; --cw:#0F1A2B; --cm:#2E4E80; }
+:root[data-tema="escuro"] .col-fazendo,
+:root[data-tema="escuro"] .lg-fazendo { --ct:#F2C86E; --cw:#211B0B; --cm:#6E5722; }
+:root[data-tema="escuro"] .col-revisao,
+:root[data-tema="escuro"] .lg-revisao { --ct:#CBA6FF; --cw:#1B1430; --cm:#513884; }
+:root[data-tema="escuro"] .col-feito,
+:root[data-tema="escuro"] .lg-feito   { --ct:#6FDBA8; --cw:#0C2218; --cm:#2C6E4F; }
+:root[data-tema="escuro"] .cal-barra{ background: color-mix(in oklab, var(--ce) 34%, var(--diluente)); }
+:root[data-tema="escuro"] .cal-lg i{ background: color-mix(in oklab, var(--ce) 45%, var(--diluente)); }
+:root[data-tema="escuro"] .cr-barra{ background: color-mix(in oklab, var(--ce) 36%, var(--diluente)); }
 
 /* O acento vive no <html>, que sobrevive a cada render — por isso
    a troca de Espaço consegue transicionar a cor do app inteiro. */
@@ -174,7 +273,11 @@ ul{ margin:0; padding:0; list-style:none; }
 /* A logo é a identidade do produto — fica sempre no azul de marca,
    não segue o acento vivo do Espaço (esse é só para navegação).
    Sem moldura: o desenho é a logo, não um ícone dentro de um chip. */
-.marca-p{ flex:none; display:grid; place-items:center; }
+/* A logo é sempre o azul de marca, nunca o acento do Espaço. No
+   escuro ela clareia: o índigo original sobre quase preto fica
+   perto demais do fundo para uma marca deste tamanho. */
+.marca-p{ flex:none; display:grid; place-items:center; color: #5B4BFF; }
+:root[data-tema="escuro"] .marca-p{ color: #8E81FF; }
 .marca-p svg{ display:block; }
 .marca-n{ font-size: 16.5px; font-weight:800; letter-spacing:-.032em; }
 
@@ -186,7 +289,7 @@ ul{ margin:0; padding:0; list-style:none; }
   font-size: 14px; font-weight:600; color: var(--tinta-2);
   transition: background .18s var(--suave), color .18s var(--suave);
 }
-.nav-i:hover{ background: rgba(14,14,22,.045); color: var(--tinta); }
+.nav-i:hover{ background: var(--toque); color: var(--tinta); }
 .nav-i[aria-current="page"]{ background: var(--acento-fundo); color: var(--acento-texto); }
 .nav-i[aria-current="page"] svg{ color: var(--acento); }
 .nav-i svg{ flex:none; color: var(--tinta-3); transition: color .18s var(--suave); }
@@ -201,7 +304,7 @@ ul{ margin:0; padding:0; list-style:none; }
   display:grid; place-items:center; color: var(--tinta-3);
   transition: background .16s, color .16s, transform .3s var(--mola);
 }
-.mais:hover{ background: rgba(14,14,22,.06); color: var(--tinta); transform: rotate(90deg); }
+.mais:hover{ background: var(--toque-2); color: var(--tinta); transform: rotate(90deg); }
 
 /* espaço na lateral, com sanfona animada */
 .esp{ margin-bottom: 1px; }
@@ -211,8 +314,8 @@ ul{ margin:0; padding:0; list-style:none; }
   font-size: 13.5px; font-weight:600; color: var(--tinta-2);
   transition: background .18s var(--suave), color .18s var(--suave);
 }
-.esp-b:hover{ background: rgba(14,14,22,.045); color: var(--tinta); }
-.esp-b[aria-current="page"]{ color: var(--tinta); background: rgba(14,14,22,.05); }
+.esp-b:hover{ background: var(--toque); color: var(--tinta); }
+.esp-b[aria-current="page"]{ color: var(--tinta); background: var(--toque); }
 .ponto{
   width: 9px; height: 9px; border-radius: 50%; flex:none;
   background: var(--c); box-shadow: 0 0 0 3px color-mix(in oklab, var(--c) 16%, transparent);
@@ -237,7 +340,7 @@ ul{ margin:0; padding:0; list-style:none; }
   overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
   transition: background .16s, color .16s;
 }
-.proj-b:hover{ background: rgba(14,14,22,.045); color: var(--tinta); }
+.proj-b:hover{ background: var(--toque); color: var(--tinta); }
 .proj-b[aria-current="page"]{ background: var(--acento-fundo); color: var(--acento-texto); font-weight:600; }
 
 /* rodapé da lateral */
@@ -252,6 +355,14 @@ ul{ margin:0; padding:0; list-style:none; }
   transition: background .16s var(--suave), color .16s var(--suave);
 }
 .sair-b:hover{ background: var(--erro-bg); color: var(--erro); }
+.tema-b{
+  display:grid; place-items:center; flex:none;
+  width:30px; height:30px; border-radius:9px; color: var(--tinta-3);
+  transition: background .16s var(--suave), color .16s var(--suave);
+}
+.tema-b:hover{ background: var(--sup-3); color: var(--tinta); }
+.tema-canto{ position:fixed; top:18px; right:18px; z-index:5; }
+.tema-canto .tema-b{ width:36px; height:36px; border-radius:11px; }
 .pilha{ display:flex; }
 .pilha .av{ margin-left:-7px; box-shadow: 0 0 0 2.5px var(--sup); }
 .pilha .av:first-child{ margin-left:0; }
@@ -318,7 +429,7 @@ ul{ margin:0; padding:0; list-style:none; }
 .b-s:hover{ background: var(--sup-2); box-shadow: var(--s-2), inset 0 0 0 1px var(--borda-2); }
 
 .b-f{ background: transparent; color: var(--tinta-2); }
-.b-f:hover{ background: rgba(14,14,22,.055); color: var(--tinta); }
+.b-f:hover{ background: var(--toque-2); color: var(--tinta); }
 
 /* destrutivo: discreto em repouso, inequívoco na confirmação */
 .b-perigo{ background: transparent; color: var(--tinta-2); }
@@ -425,7 +536,7 @@ ul{ margin:0; padding:0; list-style:none; }
   display:inline-flex; align-items:center; gap:5px;
   font-size: 11px; font-weight:650; letter-spacing:-.005em;
   padding: 2px 8px 2px 6px; border-radius: 20px;
-  background: color-mix(in oklab, var(--c) 11%, white);
+  background: color-mix(in oklab, var(--c) 11%, var(--diluente));
   color: var(--cd);
   white-space:nowrap;
 }
@@ -607,7 +718,7 @@ ul{ margin:0; padding:0; list-style:none; }
 .anx-i{
   width: 32px; height: 32px; border-radius: 9px; flex:none;
   display:grid; place-items:center;
-  background: color-mix(in oklab, var(--ai) 12%, white); color: var(--ai);
+  background: color-mix(in oklab, var(--ai) 12%, var(--diluente)); color: var(--ai);
 }
 .anx-c{ flex:1; min-width:0; }
 .anx-n{ font-size: 13px; font-weight:650; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
@@ -785,7 +896,7 @@ button.spl:hover .spl-ed{ color: var(--acento-texto); }
   margin: 1px 0 2px; padding: 3px 9px;
   min-width:0; text-align:left; overflow:hidden;
   font-size: 11px; font-weight:650; line-height:1.35;
-  background: color-mix(in oklab, var(--ce) 17%, white);
+  background: color-mix(in oklab, var(--ce) 17%, var(--diluente));
   color: var(--ce-txt);
   transition: filter .18s var(--suave), transform .2s var(--mola);
 }
@@ -828,7 +939,7 @@ button.spl:hover .spl-ed{ color: var(--acento-texto); }
 .cal-legenda{ display:flex; align-items:center; gap:16px; margin-top: 12px; flex-wrap:wrap; }
 .cal-lg{ display:flex; align-items:center; gap:6px; font-size: 11.5px; color: var(--tinta-2); }
 .cal-lg i{ width:22px; height:9px; border-radius:4px; display:block;
-            background: color-mix(in oklab, var(--ce) 30%, white); box-shadow: inset 3px 0 0 0 var(--ce); }
+            background: color-mix(in oklab, var(--ce) 30%, var(--diluente)); box-shadow: inset 3px 0 0 0 var(--ce); }
 .cal-lg.tarefa i{ width:7px; height:7px; border-radius:50%; background: var(--tinta-3); box-shadow:none; }
 
 /* ---------- cronograma (Gantt) ----------
@@ -888,7 +999,7 @@ button.spl:hover .spl-ed{ color: var(--acento-texto); }
   position:relative; z-index:2; align-self:center;
   padding: 4px 9px; min-width:0; text-align:left; overflow:hidden;
   font-size: 11px; font-weight:650; line-height:1.3;
-  background: color-mix(in oklab, var(--ce) 22%, white);
+  background: color-mix(in oklab, var(--ce) 22%, var(--diluente));
   color: var(--tinta);
   transition: filter .18s var(--suave), transform .2s var(--mola);
 }
@@ -1264,14 +1375,32 @@ function fmt(o){ var d=dataDe(o); return d.getDate()+' '+MES[d.getMonth()]; }
    cb = sólido, o único que recebe texto branco em cima (AA)
    cd = fundo, para texto colorido sobre claro
    cf = lavagem, para fundos tingidos */
+/* cd e cf existem em dois jogos porque são os únicos que dependem do
+   papel: cd é cor de texto e cf é lavagem de fundo. c (o vivo) e cb
+   (o sólido que carrega texto branco) valem nos dois modos — mexer
+   neles quebraria o contraste que já foi calibrado. */
 var TONS = {
-  indigo:  { c:'#5B4BFF', cb:'#5B4BFF', cd:'#4433E0', cf:'#EEECFF' },
-  rosa:    { c:'#FF3D8B', cb:'#D91060', cd:'#C8145C', cf:'#FFECF3' },
-  menta:   { c:'#00C58A', cb:'#007A55', cd:'#007A55', cf:'#E1FAF1' },
-  ambar:   { c:'#FF8A00', cb:'#AD5E00', cd:'#9E5800', cf:'#FFF2E0' },
-  ciano:   { c:'#00B4E6', cb:'#007E9E', cd:'#006B87', cf:'#E0F6FD' },
-  violeta: { c:'#9B4DFF', cb:'#8B35F0', cd:'#7422DB', cf:'#F3EAFF' }
+  indigo:  { c:'#5B4BFF', cb:'#5B4BFF', cd:'#4433E0', cf:'#EEECFF', cdE:'#B7AEFF', cfE:'#221F3E' },
+  rosa:    { c:'#FF3D8B', cb:'#D91060', cd:'#C8145C', cf:'#FFECF3', cdE:'#FFA8C7', cfE:'#3A1C2B' },
+  menta:   { c:'#00C58A', cb:'#007A55', cd:'#007A55', cf:'#E1FAF1', cdE:'#5FE7BE', cfE:'#0E2C25' },
+  ambar:   { c:'#FF8A00', cb:'#AD5E00', cd:'#9E5800', cf:'#FFF2E0', cdE:'#FFC072', cfE:'#372716' },
+  ciano:   { c:'#00B4E6', cb:'#007E9E', cd:'#006B87', cf:'#E0F6FD', cdE:'#7BD9F5', cfE:'#0D2A34' },
+  violeta: { c:'#9B4DFF', cb:'#8B35F0', cd:'#7422DB', cf:'#F3EAFF', cdE:'#D0AAFF', cfE:'#2B1E40' }
 };
+
+/* Verdadeiro quando o app está no escuro. Lido em toda decisão de
+   cor que o JavaScript toma (as que o CSS não alcança porque vão
+   inline no elemento). */
+function noEscuro(){ return document.documentElement.getAttribute('data-tema') === 'escuro'; }
+function tomFundo(t){ return noEscuro() ? t.cfE : t.cf; }
+function tomTexto(t){ return noEscuro() ? t.cdE : t.cd; }
+
+/* O botão mostra para onde leva, não onde está: de dia oferece a lua. */
+function botaoTema(){
+  var r = noEscuro() ? 'Usar o modo claro' : 'Usar o modo escuro';
+  return '<button class="tema-b" data-a="tema" title="'+r+'" aria-label="'+r+'">'+
+    (noEscuro() ? I.sol : I.lua)+'</button>';
+}
 var TONS_ORDEM = ['indigo','rosa','menta','ambar','ciano','violeta'];
 var TOM_MARCA = 'indigo';
 
@@ -1500,16 +1629,16 @@ function faixasDaSemana(gs, ini, fim, mapaPistas){
 function corEntrega(g){
   var st = sitEntrega(g);
   if(st === 'entregue') return '#00A86B';
-  if(st === 'atrasado') return '#C4162E';
+  if(st === 'atrasado') return noEscuro() ? '#FF4D63' : '#C4162E';
   if(st === 'curso')    return tomDoProjeto(g.p).c;
-  return '#9295A8';
+  return noEscuro() ? '#7E8298' : '#9295A8';
 }
 function corEntregaTexto(g){
   var st = sitEntrega(g);
-  if(st === 'entregue') return '#00744A';
-  if(st === 'atrasado') return '#A81026';
-  if(st === 'curso')    return tomDoProjeto(g.p).cd;
-  return '#61637A';
+  if(st === 'entregue') return noEscuro() ? '#5FE7BE' : '#00744A';
+  if(st === 'atrasado') return noEscuro() ? '#FFA3AD' : '#A81026';
+  if(st === 'curso')    return tomTexto(tomDoProjeto(g.p));
+  return noEscuro() ? '#B6BACC' : '#61637A';
 }
 function progressoEntrega(gid){
   var ts = tarefasDaEntrega(gid);
@@ -1566,11 +1695,18 @@ var I = {
          '<circle cx="16" cy="17" r="8.8" fill="#000"/>'+
          '<circle cx="31.3" cy="12.3" r="4.5" fill="#000"/>'+
          '</mask>'+
-         '<ellipse cx="16" cy="17" rx="14.5" ry="5.8" transform="rotate(-16 16 17)" stroke="#5B4BFF" stroke-width="2.3" mask="url(#orb-anel)"/>'+
-         '<circle cx="16" cy="17" r="7.4" fill="#5B4BFF"/>'+
-         '<circle cx="31.3" cy="12.3" r="3.1" fill="#5B4BFF"/>'+
+         '<ellipse cx="16" cy="17" rx="14.5" ry="5.8" transform="rotate(-16 16 17)" stroke="currentColor" stroke-width="2.3" mask="url(#orb-anel)"/>'+
+         '<circle cx="16" cy="17" r="7.4" fill="currentColor"/>'+
+         '<circle cx="31.3" cy="12.3" r="3.1" fill="currentColor"/>'+
          '</svg>',
   casa:  '<svg width="16" height="16" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M3.5 8.6 10 3.4l6.5 5.2v7a1.4 1.4 0 0 1-1.4 1.4H4.9a1.4 1.4 0 0 1-1.4-1.4v-7Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>',
+  sol:   '<svg width="16" height="16" viewBox="0 0 20 20" fill="none" aria-hidden="true">'+
+         '<circle cx="10" cy="10" r="3.5" stroke="currentColor" stroke-width="1.6"/>'+
+         '<path d="M10 2.3v1.9M10 15.8v1.9M17.7 10h-1.9M4.2 10H2.3M15.4 4.6l-1.3 1.3M6 14l-1.4 1.4M15.4 15.4 14 14M6 6 4.6 4.6" '+
+         'stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>',
+  lua:   '<svg width="16" height="16" viewBox="0 0 20 20" fill="none" aria-hidden="true">'+
+         '<path d="M16.3 12.6A7.1 7.1 0 0 1 7.4 3.7a7.1 7.1 0 1 0 8.9 8.9Z" '+
+         'stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>',
   tique: '<svg width="11" height="11" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M2.4 6.2 4.8 8.7 9.6 3.4" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
   chev:  '<svg class="chevron" width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M5.4 3.2 9.2 7l-3.8 3.8" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>',
   mais:  '<svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M7 2.6v8.8M2.6 7h8.8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>',
@@ -1611,9 +1747,17 @@ function vAnexo(a, i, tid){
    apagou a própria conta — a coluna vira null sozinha no banco
    (ON DELETE SET NULL), mas a tela continua precisando desenhar
    alguma coisa no lugar do avatar. */
+/* O banco preenche as iniciais no cadastro, mas linha que chegou por
+   outro caminho vem sem elas — e o avatar escrevia "undefined". */
+function iniciaisDoNome(nome){
+  var p = String(nome || '').trim().split(/\s+/).filter(Boolean);
+  if(!p.length) return '?';
+  return (p[0][0] + (p.length > 1 ? p[p.length-1][0] : '')).toUpperCase();
+}
+
 function av(p, cls){
   if(!p) return '<span class="av '+(cls||'')+'" style="--c:#9295A8" title="Sem responsável">?</span>';
-  return '<span class="av '+(cls||'')+(p.fora?' ausente':'')+'" style="--c:'+p.cor+'" title="'+esc(p.nome)+(p.fora?' · indisponível':'')+'">'+p.ini+'</span>';
+  return '<span class="av '+(cls||'')+(p.fora?' ausente':'')+'" style="--c:'+p.cor+'" title="'+esc(p.nome)+(p.fora?' · indisponível':'')+'">'+esc(p.ini || iniciaisDoNome(p.nome))+'</span>';
 }
 function pilha(gente, cls){
   return '<span class="pilha">'+gente.map(function(p){ return av(p, cls||'p'); }).join('')+'</span>';
@@ -1661,6 +1805,7 @@ function vLateral(){
     '<div class="lat-pe"><div class="eu-l">'+
       av(eu(), '')+
       '<span class="eu-nome">'+esc(eu().nome.split(' ')[0])+'</span>'+
+      botaoTema()+
       '<button class="sair-b" data-a="sair" aria-label="Sair da conta">'+I.sair+'<span>Sair</span></button>'+
     '</div></div>'+
   '</aside>';
@@ -1753,7 +1898,7 @@ function vInicio(){
     return '<li><button class="at" data-a="tarefa" data-id="'+t.id+'">'+
       av(q,'')+
       '<span class="at-txt"><b>'+esc(q ? q.nome.split(' ')[0] : 'alguém')+'</b> '+f.v+' <span class="at-alvo">'+esc(t.t)+'</span>'+
-      '<span class="at-pe"><span class="selo" style="--c:'+tom.c+';--cd:'+tom.cd+'">'+esc(p.nome)+'</span>'+
+      '<span class="at-pe"><span class="selo" style="--c:'+tom.c+';--cd:'+tomTexto(tom)+'">'+esc(p.nome)+'</span>'+
       '<span class="at-h">'+horaTxt(horasDesde(f.criado_em))+'</span></span></span>'+
     '</button></li>';
   }).join('');
@@ -2295,7 +2440,7 @@ function vModalTarefa(t){
 
   return '<div class="folha larga" role="dialog" aria-modal="true" aria-label="'+esc(t.t)+'">'+
     '<div class="f-cab"><div>'+
-      '<span class="selo" style="--c:'+tom.c+';--cd:'+tom.cd+'">'+esc(e.nome)+' · '+esc(p.nome)+'</span>'+
+      '<span class="selo" style="--c:'+tom.c+';--cd:'+tomTexto(tom)+'">'+esc(e.nome)+' · '+esc(p.nome)+'</span>'+
       (sp ? ' <span class="spr" title="Criada nesta sprint">'+I.cal+' Sprint '+sp.n+' · '+faixaSprint(sp)+'</span>' : '')+
       '<input class="ent" data-campo="t" data-id="'+t.id+'" value="'+esc(t.t)+'" aria-label="Título da tarefa"'+
         ' style="margin-top:10px;font-size:19px;font-weight:800;letter-spacing:-.028em;padding:6px 10px">'+trava+'</div>'+
@@ -2644,7 +2789,7 @@ function vModalEntrega(){
 
   return '<div class="folha larga" role="dialog" aria-modal="true" aria-label="'+(criando?'Novo entregável':esc(g.nome))+'">'+
     '<div class="f-cab"><div>'+
-      '<span class="selo" style="--c:'+tom.c+';--cd:'+tom.cd+'">'+esc(e.nome)+' · '+esc(pr.nome)+'</span>'+
+      '<span class="selo" style="--c:'+tom.c+';--cd:'+tomTexto(tom)+'">'+esc(e.nome)+' · '+esc(pr.nome)+'</span>'+
       '<h2 style="margin-top:10px">'+(criando ? 'Novo entregável' : esc(g.nome))+'</h2>'+
       (criando ? '<p>O que o cliente recebe, e quando. A backlog é sobre datas de entrega, não sobre execução.</p>' : '')+
       '</div><button class="f-x" data-a="fechar" aria-label="Fechar">'+I.x+'</button></div>'+
@@ -2752,7 +2897,7 @@ function vLogin(){
       '<button type="button" class="login-voltar" data-a="auth-voltar-passo" style="margin-top:14px">'+I.esq+' Voltar</button>';
   }
 
-  return '<div class="tela-login"><div class="login-card">'+
+  return '<div class="tela-login"><span class="tema-canto">'+botaoTema()+'</span><div class="login-card">'+
       '<div class="login-marca"><span class="marca-p">'+I.logo+'</span><span class="marca-n">Órbita</span></div>'+
       '<h1 class="login-titulo">'+titulo+'</h1>'+
       '<p class="login-sub">'+sub+'</p>'+
@@ -2999,11 +3144,48 @@ function tomAtual(){
   return TONS[TOM_MARCA];
 }
 
+/* ==========================================================
+   TEMA
+   Três estados guardados, dois visíveis: enquanto ninguém escolhe,
+   o app segue o sistema; no primeiro clique passa a obedecer a
+   pessoa e não volta atrás sozinho.
+   ========================================================== */
+
+var TEMA_CHAVE = 'orbita:tema';
+var midiaEscura = window.matchMedia('(prefers-color-scheme: dark)');
+
+function temaGuardado(){
+  try { return localStorage.getItem(TEMA_CHAVE) || 'auto'; } catch(e){ return 'auto'; }
+}
+function temaDeAgora(){
+  var t = temaGuardado();
+  if(t === 'claro' || t === 'escuro') return t;
+  return midiaEscura.matches ? 'escuro' : 'claro';
+}
+function aplicarTema(){
+  var t = temaDeAgora();
+  document.documentElement.setAttribute('data-tema', t);
+  var m = document.querySelector('meta[name="theme-color"]');
+  if(m) m.setAttribute('content', t === 'escuro' ? '#0A0B12' : '#5B4BFF');
+}
+function trocarTema(){
+  try { localStorage.setItem(TEMA_CHAVE, temaDeAgora() === 'escuro' ? 'claro' : 'escuro'); } catch(e){}
+  aplicarTema();
+  aplicarTom();   /* lavagem e texto do acento trocam de jogo */
+  render();
+}
+
+/* Só acompanha o sistema enquanto a pessoa não tiver escolhido. */
+midiaEscura.addEventListener('change', function(){
+  if(temaGuardado() !== 'auto') return;
+  aplicarTema(); aplicarTom(); render();
+});
+
 function aplicarTom(){
   var t = tomAtual(), r = document.documentElement.style;
   r.setProperty('--acento', t.c);
-  r.setProperty('--acento-fundo', t.cf);
-  r.setProperty('--acento-texto', t.cd);
+  r.setProperty('--acento-fundo', tomFundo(t));
+  r.setProperty('--acento-texto', tomTexto(t));
   r.setProperty('--acento-solido', t.cb);
 }
 
@@ -3257,6 +3439,7 @@ var ACOES = {
   },
   'vista': function(el){ E.vistaProjeto = el.getAttribute('data-id'); },
   'vista-backlog': function(el){ E.vistaBacklog = el.getAttribute('data-id'); },
+  'tema': function(){ trocarTema(); return false; },
   'mes-anda': function(el){ E.mesCal += (+el.getAttribute('data-v')); },
   'mes-hoje': function(){ E.mesCal = 0; },
 
