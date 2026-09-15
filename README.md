@@ -26,7 +26,7 @@ O que o login faz:
 
 **O que ainda não existe:** criar ou apagar uma subtarefa (só marcar/desmarcar — a tela nunca teve um jeito de adicionar uma), e apagar uma sprint (só criar e corrigir datas). Nenhum dos dois foi pedido ainda; o banco já suporta os dois no dia em que forem.
 
-**Detalhe técnico:** ver `supabase-schema.sql` (e as seis migrações numeradas, se você recriar o banco do zero, use só o schema — as migrações existem porque o schema mudou de forma ao longo da construção, sobre um banco que já existia). O cadastro aceita ou recusa o e-mail dentro de um gatilho no Postgres (`lidar_novo_usuario`), não no JavaScript — por isso a regra vale mesmo se alguém tentar burlar a tela.
+**Detalhe técnico:** ver `supabase-schema.sql` (e as sete migrações numeradas, se você recriar o banco do zero, use só o schema — as migrações existem porque o schema mudou de forma ao longo da construção, sobre um banco que já existia). O cadastro aceita ou recusa o e-mail dentro de um gatilho no Postgres (`lidar_novo_usuario`), não no JavaScript — por isso a regra vale mesmo se alguém tentar burlar a tela.
 
 Responsável de tarefa mudou de coluna única (`tarefas.responsavel_id`) para tabela de junção (`tarefas_responsaveis`, uma linha por pessoa vinculada) na migração 5, para caber mais de uma pessoa por tarefa.
 
@@ -82,6 +82,8 @@ Esta é a **única cor do app que não segue o acento do Espaço** — o fluxo d
 **Em revisão exige dizer quem revisa.** Tanto arrastar quanto trocar a etiqueta dentro da tarefa abrem a pergunta "Quem revisa?" antes de mover. A sugestão é alguém diferente do responsável. No cartão, o revisor aparece com um anel violeta ao lado do responsável.
 
 **Arrastar ficou mais fácil.** Antes só o topo da lista aceitava a soltura. Agora o alvo é a **coluna inteira** — cabeçalho, espaço vazio, o miolo entre cartões — e ela inteira se acende com um retângulo tracejado mostrando onde o cartão vai cair.
+
+**A ordem dentro da coluna é a do movimento mais recente**, não a do prazo: o que acabou de chegar na coluna aparece no topo. Antes, "Feito" abria pelo primeiro cartão que alguém tinha concluído, que é o que menos interessa olhar. A tarefa guarda a hora em que mudou de coluna (`movido_em`, migração 7) — criar também conta como movimento. Vale igual na Lista, que é a mesma coluna em outro formato. Empate cai no prazo, que era a ordem antiga.
 
 **Só há dois jeitos de mudar a fase de uma tarefa:** arrastar o cartão, ou trocar a etiqueta de Situação dentro da tarefa. Não existe seta no cartão, não existe tique de concluir na lista, e o rodapé da tarefa não tem botão de "Concluir" — ele só fecha. Mover é sempre um gesto deliberado.
 

@@ -1389,6 +1389,11 @@ function tomDe(espId){ var e = espaco(espId); return TONS[e ? e.tom : TOM_MARCA]
 function tomDoProjeto(pid){ var p = projeto(pid); return p ? tomDe(p.esp) : TONS[TOM_MARCA]; }
 
 function tarefasDe(pid){ return TAREFAS.filter(function(t){ return t.p === pid; }); }
+
+/* Ordem das colunas do quadro e da lista: quem chegou na coluna por
+   último aparece primeiro. Empate desempata pelo prazo, que era a
+   ordem única antes disso. */
+function recemMexida(a, b){ return (b.mov||0) - (a.mov||0) || a.d - b.d; }
 function projetosDe(eid){ return PROJETOS.filter(function(p){ return p.esp === eid; }); }
 
 function bloqueada(t){
@@ -2180,7 +2185,7 @@ function vProjeto(){
     corpo = vCronograma(p.id);
   } else if(E.vistaProjeto === 'quadro'){
     corpo = '<div class="quadro">'+COLUNAS.map(function(c){
-      var lista = ts.filter(function(t){ return t.s===c[0]; }).sort(function(a,b){ return a.d-b.d; });
+      var lista = ts.filter(function(t){ return t.s===c[0]; }).sort(recemMexida);
       return '<section class="col col-'+c[0]+'" data-col="'+c[0]+'">'+
         '<div class="col-cab"><span class="col-pt"></span><span class="rot">'+c[1]+'</span>'+
         '<span class="cont">'+lista.length+'</span>'+
@@ -2191,7 +2196,7 @@ function vProjeto(){
     }).join('')+'</div>';
   } else {
     corpo = '<div class="lista">'+COLUNAS.map(function(g){
-      var lista = ts.filter(function(t){ return t.s===g[0]; }).sort(function(a,b){ return a.d-b.d; });
+      var lista = ts.filter(function(t){ return t.s===g[0]; }).sort(recemMexida);
       if(!lista.length) return '';
       return '<div class="lg lg-'+g[0]+'"><span class="lg-pt"></span><h3>'+g[1]+'</h3>'+
         '<span class="cont">'+lista.length+'</span></div>'+
@@ -2924,7 +2929,7 @@ async function carregarEntregas(){
 async function carregarTarefas(){
   var rt = await consultar(function(){
     return sb.from('tarefas').select(
-      'id, projeto_id, entrega_id, sprint_id, dependencia_id, titulo, descricao, revisor_id, inicio, prazo, situacao, recorrencia'
+      'id, projeto_id, entrega_id, sprint_id, dependencia_id, titulo, descricao, revisor_id, inicio, prazo, situacao, recorrencia, movido_em'
     );
   });
   if(!rt.data){ return; }
@@ -2963,6 +2968,7 @@ async function carregarTarefas(){
       id: row.id, p: row.projeto_id, ent: row.entrega_id, spr: row.sprint_id, dep: row.dependencia_id,
       t: row.titulo, desc: row.descricao || '', qs: qsPorTarefa[row.id] || [], revisor: row.revisor_id,
       ini: offDe(row.inicio), d: offDe(row.prazo), s: row.situacao, rep: row.recorrencia,
+      mov: new Date(row.movido_em).getTime(),
       subs: subsPorTarefa[row.id] || [], coments: comsPorTarefa[row.id] || [], anexos: anxPorTarefa[row.id] || []
     });
   });
@@ -3170,8 +3176,9 @@ function ligarArrasto(){
       if(t.s === destino) return;
       if(destino === 'revisao'){ pedirRevisor(t); render(); return; }
       t.s = destino;
+      t.mov = Date.now();
       registrar(verboDe(destino), t.id);
-      sb.from('tarefas').update({ situacao:destino }).eq('id', t.id).then(function(r){
+      sb.from('tarefas').update({ situacao:destino, movido_em: new Date(t.mov).toISOString() }).eq('id', t.id).then(function(r){
         if(r.error) console.error('Não consegui salvar situação:', r.error);
       });
       render();
@@ -3361,8 +3368,9 @@ var ACOES = {
   'situacao': function(el){
     var t = tarefa(el.getAttribute('data-id'));
     t.s = el.getAttribute('data-v');
+    t.mov = Date.now();
     registrar(verboDe(t.s), t.id);
-    sb.from('tarefas').update({ situacao:t.s }).eq('id', t.id).then(function(r){
+    sb.from('tarefas').update({ situacao:t.s, movido_em: new Date(t.mov).toISOString() }).eq('id', t.id).then(function(r){
       if(r.error) console.error('Não consegui salvar situação:', r.error);
     });
   },
@@ -3377,8 +3385,9 @@ var ACOES = {
     var t = tarefa(el.getAttribute('data-id'));
     t.revisor = E.revisorEscolhido;
     t.s = 'revisao';
+    t.mov = Date.now();
     registrar('enviou para revisão', t.id);
-    sb.from('tarefas').update({ revisor_id:t.revisor, situacao:t.s }).eq('id', t.id).then(function(r){
+    sb.from('tarefas').update({ revisor_id:t.revisor, situacao:t.s, movido_em: new Date(t.mov).toISOString() }).eq('id', t.id).then(function(r){
       if(r.error) console.error('Não consegui salvar revisor:', r.error);
     });
     E.modal = E.voltarPara || null;
@@ -3545,7 +3554,7 @@ var ACOES = {
         if(insQ.error) console.error('Não consegui salvar responsáveis:', insQ.error);
       }
       var nova = {
-        id: ins.data.id, p:pid, t:titulo, desc:desc, qs:quems, ini:ini, d:prazo, s:situ,
+        id: ins.data.id, p:pid, t:titulo, desc:desc, qs:quems, ini:ini, d:prazo, s:situ, mov: Date.now(),
         spr:sprId, ent:entId, dep:null, revisor:null, rep:null,
         subs:[], coments:[], anexos:[]
       };

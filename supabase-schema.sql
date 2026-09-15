@@ -180,6 +180,7 @@ create table public.tarefas (
   prazo           date not null,
   situacao        text not null default 'afazer' check (situacao in ('afazer','fazendo','revisao','feito')),
   recorrencia     text check (recorrencia in ('semanal','mensal')),
+  movido_em       timestamptz not null default now(),
   criado_em       timestamptz not null default now()
 );
 
