@@ -176,6 +176,7 @@ create table public.tarefas (
   titulo          text not null,
   descricao       text,
   revisor_id      uuid references public.pessoas (id) on delete set null,
+  inicio          date not null default current_date,
   prazo           date not null,
   situacao        text not null default 'afazer' check (situacao in ('afazer','fazendo','revisao','feito')),
   recorrencia     text check (recorrencia in ('semanal','mensal')),

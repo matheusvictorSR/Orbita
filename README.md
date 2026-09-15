@@ -26,7 +26,7 @@ O que o login faz:
 
 **O que ainda não existe:** criar ou apagar uma subtarefa (só marcar/desmarcar — a tela nunca teve um jeito de adicionar uma), e apagar uma sprint (só criar e corrigir datas). Nenhum dos dois foi pedido ainda; o banco já suporta os dois no dia em que forem.
 
-**Detalhe técnico:** ver `supabase-schema.sql` (e as cinco migrações numeradas, se você recriar o banco do zero, use só o schema — as migrações existem porque o schema mudou de forma ao longo da construção, sobre um banco que já existia). O cadastro aceita ou recusa o e-mail dentro de um gatilho no Postgres (`lidar_novo_usuario`), não no JavaScript — por isso a regra vale mesmo se alguém tentar burlar a tela.
+**Detalhe técnico:** ver `supabase-schema.sql` (e as seis migrações numeradas, se você recriar o banco do zero, use só o schema — as migrações existem porque o schema mudou de forma ao longo da construção, sobre um banco que já existia). O cadastro aceita ou recusa o e-mail dentro de um gatilho no Postgres (`lidar_novo_usuario`), não no JavaScript — por isso a regra vale mesmo se alguém tentar burlar a tela.
 
 Responsável de tarefa mudou de coluna única (`tarefas.responsavel_id`) para tabela de junção (`tarefas_responsaveis`, uma linha por pessoa vinculada) na migração 5, para caber mais de uma pessoa por tarefa.
 
@@ -100,6 +100,16 @@ O período não pode se inverter — nem ao criar, nem ao corrigir. Para uma ent
 Na lista, **a data lidera cada linha** — um bloco à esquerda com dia e mês, na cor da situação. A backlog é sobre datas de entrega, então a data vem primeiro; é o que a distingue visualmente de um cartão de tarefa.
 
 O **calendário** mostra os dois: o entregável é uma **barra contínua** que atravessa os dias do seu período, e o prazo de tarefa é um chip pontual com um ponto colorido. Navega por mês, e o botão "Hoje" só aparece quando você saiu do mês corrente. Clicar abre o item.
+
+## Cronograma
+
+Aba própria dentro do projeto, entre Lista e Backlog. É um **Gantt**: uma linha por tarefa, uma coluna por dia do mês, e a tarefa vira uma **barra que ocupa um período** em vez de um ponto no prazo.
+
+Para isso a tarefa ganhou uma **data de início** (migração 6), ao lado do prazo que já existia. **Por padrão ela começa no dia em que foi criada**, e dá para mudar na própria tarefa. Mexer numa ponta empurra a outra em vez de recusar o que foi digitado — ninguém termina antes de começar.
+
+As tarefas aparecem **agrupadas pelo entregável** a que servem, com a barra do próprio entregável na linha do grupo; as que não servem a nenhum caem em "Sem entregável". A cor da barra é a fase (a fazer · fazendo · em revisão · feito), tarefa vencida e ainda aberta ganha contorno vermelho, e concluída fica riscada.
+
+A coluna dos nomes **fica parada** enquanto o tempo rola na horizontal. Só entra na tela quem ocupa algum dia do mês aberto — as setas levam aos outros meses, e o mês é o mesmo do calendário da backlog.
 
 A barra quebra ao virar a semana e ganha um `‹` ou `›` na ponta cortada, para ficar claro que continua na linha de cima ou de baixo.
 

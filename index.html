@@ -831,6 +831,87 @@ button.spl:hover .spl-ed{ color: var(--acento-texto); }
             background: color-mix(in oklab, var(--ce) 30%, white); box-shadow: inset 3px 0 0 0 var(--ce); }
 .cal-lg.tarefa i{ width:7px; height:7px; border-radius:50%; background: var(--tinta-3); box-shadow:none; }
 
+/* ---------- cronograma (Gantt) ----------
+   Uma linha por tarefa, uma coluna por dia. A coluna dos nomes
+   gruda na esquerda enquanto o tempo rola por baixo. */
+.cr{ display:flex; background: var(--sup); border-radius: var(--r-g); box-shadow: var(--s-1); overflow:hidden; }
+.cr-lado{ flex:none; width: 212px; border-right: 1px solid var(--borda); }
+.cr-rol{ flex:1; min-width:0; overflow-x:auto; }
+.cr-grade{
+  display:grid;
+  grid-template-columns: repeat(var(--dias), minmax(30px, 1fr));
+  grid-template-rows: 40px;
+  grid-auto-rows: 31px;
+}
+
+.cr-bg{ border-right: 1px solid var(--borda); }
+.cr-bg.fds{ background: color-mix(in oklab, var(--sup-3) 60%, transparent); }
+.cr-bg.hoje{ background: color-mix(in oklab, var(--acento) 10%, transparent); }
+
+.cr-faixa{ border-bottom: 1px solid var(--borda); pointer-events:none; }
+.cr-faixa-g{ background: color-mix(in oklab, var(--sup-2) 82%, transparent); }
+
+.cr-canto{
+  height: 40px; display:flex; align-items:flex-end; padding: 0 12px 10px;
+  font-size: 10.5px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color: var(--tinta-3);
+  border-bottom: 1px solid var(--borda);
+}
+.cr-dia{
+  position:relative; z-index:1; min-width:0;
+  display:flex; flex-direction:column; align-items:center; justify-content:flex-end; gap:2px;
+  padding-bottom: 5px; border-bottom: 1px solid var(--borda);
+}
+.cr-dow{ font-size: 8.5px; font-weight:700; letter-spacing:.05em; text-transform:uppercase; color: var(--tinta-3); }
+.cr-n{
+  font-family: var(--mono); font-size: 11.5px; color: var(--tinta-2);
+  width: 20px; height: 20px; border-radius: 50%; display:grid; place-items:center;
+}
+.cr-dia.hoje .cr-n{ background: var(--acento); color:#fff; font-weight:500; }
+
+.cr-nome{
+  height: 31px; min-width:0; display:flex; align-items:center;
+  border-bottom: 1px solid var(--borda);
+}
+.cr-nome-b{
+  display:flex; align-items:center; gap:7px; width:100%; min-width:0;
+  text-align:left; padding: 0 12px; font-size: 12.5px; color: var(--tinta-2);
+}
+.cr-nome-b span{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.cr-nome-b:hover span{ color: var(--tinta); }
+.cr-pt{ width:6px; height:6px; border-radius:50%; background: var(--ce); flex:none; }
+
+.cr-grupo{ background: var(--sup-2); }
+.cr-grupo .cr-nome-b{ font-size: 12px; font-weight:750; color: var(--tinta); }
+.cr-sem{ padding: 0 12px; font-size: 12px; font-weight:750; color: var(--tinta-3); }
+
+.cr-barra{
+  position:relative; z-index:2; align-self:center;
+  padding: 4px 9px; min-width:0; text-align:left; overflow:hidden;
+  font-size: 11px; font-weight:650; line-height:1.3;
+  background: color-mix(in oklab, var(--ce) 22%, white);
+  color: var(--tinta);
+  transition: filter .18s var(--suave), transform .2s var(--mola);
+}
+.cr-barra span{ display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.cr-barra:hover{ filter: brightness(.97); transform: translateY(-1px); }
+.cr-barra.abre{
+  border-top-left-radius: 7px; border-bottom-left-radius: 7px;
+  margin-left: 3px; box-shadow: inset 3px 0 0 0 var(--ce);
+}
+.cr-barra.fecha{ border-top-right-radius: 7px; border-bottom-right-radius: 7px; margin-right: 3px; }
+.cr-barra:not(.abre){ padding-left: 7px; }
+.cr-barra:not(.abre)::before{
+  content:"‹"; position:absolute; left:2px; top:50%; transform:translateY(-52%); font-size:12px; opacity:.55;
+}
+.cr-barra:not(.fecha)::after{
+  content:"›"; position:absolute; right:3px; top:50%; transform:translateY(-52%); font-size:12px; opacity:.55;
+}
+.cr-barra:not(.fecha) span{ padding-right: 9px; }
+.cr-barra.feita{ opacity:.6; }
+.cr-barra.feita span{ text-decoration: line-through; }
+.cr-barra.atrasada{ outline: 1.5px solid #C4162E; outline-offset: -1.5px; }
+.cr-ent{ color: var(--ce-txt); font-weight:700; }
+
 /* tarefas ligadas, dentro do entregável */
 .gt{ display:flex; align-items:center; gap:10px; padding: 8px 0; width:100%; text-align:left; }
 .gt + .gt{ border-top: 1px solid var(--borda); }
@@ -1693,8 +1774,7 @@ function vInicio(){
     '</div>'+
     '<div style="--i:1">'+vResumo()+'</div>'+
     '<div class="paineis" style="--i:2">'+
-      '<section class="painel"><div class="painel-cab"><h2>Atualizações</h2>'+
-        '<span class="cont">'+FEED.length+'</span></div>'+
+      '<section class="painel"><div class="painel-cab"><h2>Atualizações</h2></div>'+
         '<div class="painel-corpo"><ul>'+(ats||'<li class="vazio-p">Nada por aqui ainda.</li>')+'</ul></div></section>'+
       '<section class="painel"><div class="painel-cab"><h2>Próximos prazos</h2>'+
         '<span class="cont">'+TAREFAS.filter(function(t){return t.s!=='feito';}).length+'</span></div>'+
@@ -1963,6 +2043,130 @@ function vBacklog(pid){
     (E.vistaBacklog === 'calendario' ? vBacklogCal(pid) : vBacklogLista(pid));
 }
 
+/* ==========================================================
+   CRONOGRAMA — o Gantt do projeto
+   Uma linha por tarefa, uma coluna por dia do mês. A barra vai
+   do início ao prazo; foi por isso que a tarefa precisou ganhar
+   data de início. Agrupa por entregável, que é como o trabalho
+   é combinado com o cliente.
+   ========================================================== */
+
+function vCronograma(pid){
+  var ref = mesRef();
+  var ano = ref.getFullYear(), mes = ref.getMonth();
+  var dias = new Date(ano, mes + 1, 0).getDate();
+  var jIni = offDeData(new Date(ano, mes, 1));
+  var jFim = jIni + dias - 1;
+
+  /* só entra na tela quem ocupa algum dia deste mês */
+  function cabe(a, b){ return a <= jFim && b >= jIni; }
+
+  var ts = tarefasDe(pid);
+  var grupos = entregasDe(pid).map(function(g){
+    return { nome:g.nome, g:g,
+             ts: ts.filter(function(t){ return t.ent === g.id && cabe(t.ini, t.d); }) };
+  }).filter(function(gr){ return gr.ts.length || cabe(gr.g.ini, gr.g.fim); });
+
+  var soltas = ts.filter(function(t){ return !t.ent && cabe(t.ini, t.d); });
+  if(soltas.length) grupos.push({ nome:'Sem entregável', g:null, ts:soltas });
+
+  grupos.forEach(function(gr){
+    gr.ts.sort(function(a,b){ return a.ini - b.ini || a.d - b.d; });
+  });
+
+  var nav = '<div class="cal-cab">'+
+      '<span class="cal-mes">'+MES_LONGO[mes]+'</span>'+
+      '<span class="cal-ano">'+ano+'</span>'+
+      '<span class="cal-nav">'+
+        (E.mesCal !== 0 ? '<button class="b b-s b-pq" data-a="mes-hoje">Hoje</button>' : '')+
+        '<button class="b b-s b-i" data-a="mes-anda" data-v="-1" aria-label="Mês anterior">'+I.esq+'</button>'+
+        '<button class="b b-s b-i" data-a="mes-anda" data-v="1" aria-label="Próximo mês">'+I.dir+'</button>'+
+      '</span>'+
+    '</div>';
+
+  if(!grupos.length){
+    return nav+'<div class="vazio-p" style="padding:52px 20px">'+
+      '<p style="font-size:14.5px;color:var(--tinta-2)">Nenhuma tarefa ocupa '+MES_LONGO[mes]+'. '+
+      'As setas levam aos outros meses.</p></div>';
+  }
+
+  var totalLinhas = 1;
+  grupos.forEach(function(gr){ totalLinhas += 1 + gr.ts.length; });
+
+  /* A coluna dos nomes fica FORA da área que rola: dentro de uma
+     grade, position:sticky prende a célula à própria coluna e não
+     gruda em nada. As duas metades se alinham por altura de linha. */
+  var nomes = ['<div class="cr-canto">Tarefa</div>'];
+  var partes = [];
+
+  /* fundos de dia, atravessando a grade inteira */
+  for(var c = 0; c < dias; c++){
+    var dc = new Date(ano, mes, c + 1);
+    var fds = dc.getDay() === 0 || dc.getDay() === 6;
+    partes.push('<div class="cr-bg'+(fds?' fds':'')+(offDeData(dc)===0?' hoje':'')+'"'+
+      ' style="grid-column:'+(c+1)+';grid-row:1 / span '+totalLinhas+'"></div>');
+  }
+
+  for(var c2 = 0; c2 < dias; c2++){
+    var dn = new Date(ano, mes, c2 + 1);
+    partes.push('<div class="cr-dia'+(offDeData(dn)===0?' hoje':'')+'" style="grid-column:'+(c2+1)+';grid-row:1">'+
+      '<span class="cr-dow">'+DIA3[dn.getDay()]+'</span>'+
+      '<span class="cr-n">'+dn.getDate()+'</span></div>');
+  }
+
+  var linha = 2;
+  grupos.forEach(function(gr){
+    partes.push('<div class="cr-faixa cr-faixa-g" style="grid-column:1 / -1;grid-row:'+linha+'"></div>');
+    nomes.push('<div class="cr-nome cr-grupo">'+
+      (gr.g
+        ? '<button type="button" class="cr-nome-b" data-a="entrega" data-id="'+gr.g.id+'"><span>'+esc(gr.nome)+'</span></button>'
+        : '<span class="cr-sem">'+esc(gr.nome)+'</span>')+'</div>');
+
+    if(gr.g && cabe(gr.g.ini, gr.g.fim)){
+      var ga = Math.max(gr.g.ini, jIni), gb = Math.min(gr.g.fim, jFim);
+      partes.push('<button type="button" class="cr-barra cr-ent'+(gr.g.ini>=jIni?' abre':'')+(gr.g.fim<=jFim?' fecha':'')+'"'+
+        ' data-a="entrega" data-id="'+gr.g.id+'"'+
+        ' style="--ce:'+corEntrega(gr.g)+';--ce-txt:'+corEntregaTexto(gr.g)+
+          ';grid-column:'+(ga-jIni+1)+' / span '+(gb-ga+1)+';grid-row:'+linha+'"'+
+        ' title="Entregável · '+esc(gr.nome)+' · '+fmt(gr.g.ini)+' a '+fmt(gr.g.fim)+'">'+
+        '<span>'+esc(gr.nome)+'</span></button>');
+    }
+    linha++;
+
+    gr.ts.forEach(function(t){
+      var atrasada = t.d < 0 && t.s !== 'feito';
+      var quem = nomesDe(t.qs);
+      partes.push('<div class="cr-faixa" style="grid-column:1 / -1;grid-row:'+linha+'"></div>');
+      nomes.push('<div class="cr-nome">'+
+        '<button type="button" class="cr-nome-b" data-a="tarefa" data-id="'+t.id+'">'+
+          '<i class="cr-pt" style="--ce:'+COR_FASE[t.s]+'"></i><span>'+esc(t.t)+'</span></button></div>');
+
+      var a = Math.max(t.ini, jIni), b = Math.min(t.d, jFim);
+      partes.push('<button type="button" class="cr-barra'+(t.s==='feito'?' feita':'')+(atrasada?' atrasada':'')+
+        (t.ini>=jIni?' abre':'')+(t.d<=jFim?' fecha':'')+'"'+
+        ' data-a="tarefa" data-id="'+t.id+'"'+
+        ' style="--ce:'+COR_FASE[t.s]+';grid-column:'+(a-jIni+1)+' / span '+(b-a+1)+';grid-row:'+linha+'"'+
+        ' title="'+esc(t.t)+' · '+fmt(t.ini)+' a '+fmt(t.d)+(quem?' · '+esc(quem):'')+'">'+
+        '<span>'+esc(t.t)+'</span></button>');
+      linha++;
+    });
+  });
+
+  return nav+
+    '<div class="cr">'+
+      '<div class="cr-lado">'+nomes.join('')+'</div>'+
+      '<div class="cr-rol"><div class="cr-grade" style="--dias:'+dias+'">'+
+        partes.join('')+
+      '</div></div>'+
+    '</div>'+
+    '<div class="cal-legenda">'+
+      COLUNAS.map(function(c){
+        return '<span class="cal-lg" style="--ce:'+COR_FASE[c[0]]+'"><i></i> '+c[1]+'</span>';
+      }).join('')+
+      '<span class="cal-lg" style="--ce:'+tomDoProjeto(pid).c+'"><i></i> Entregável</span>'+
+    '</div>';
+}
+
 function vProjeto(){
   var p = projeto(E.projetoAberto), e = espaco(p.esp), tom = TONS[e.tom];
   var sit = situacao(p.id), pg = progresso(p.id);
@@ -1972,6 +2176,8 @@ function vProjeto(){
   var corpo;
   if(E.vistaProjeto === 'backlog'){
     corpo = vBacklog(p.id);
+  } else if(E.vistaProjeto === 'cronograma'){
+    corpo = vCronograma(p.id);
   } else if(E.vistaProjeto === 'quadro'){
     corpo = '<div class="quadro">'+COLUNAS.map(function(c){
       var lista = ts.filter(function(t){ return t.s===c[0]; }).sort(function(a,b){ return a.d-b.d; });
@@ -2008,6 +2214,7 @@ function vProjeto(){
           '<span class="seg-p"></span>'+
           '<button role="tab" data-a="vista" data-id="quadro" aria-selected="'+(E.vistaProjeto==='quadro')+'">Quadro</button>'+
           '<button role="tab" data-a="vista" data-id="lista" aria-selected="'+(E.vistaProjeto==='lista')+'">Lista</button>'+
+          '<button role="tab" data-a="vista" data-id="cronograma" aria-selected="'+(E.vistaProjeto==='cronograma')+'">Cronograma</button>'+
           '<button role="tab" data-a="vista" data-id="backlog" aria-selected="'+(E.vistaProjeto==='backlog')+'">Backlog</button>'+
         '</div>'+
       '</div>'+
@@ -2101,6 +2308,10 @@ function vModalTarefa(t){
 
       '<div class="campo"><label>Responsáveis</label>'+chipsQuem(t.qs,'quem-tarefa',true)+
         '<input type="hidden" id="mt-id" value="'+t.id+'"></div>'+
+
+      '<div class="campo"><label for="mt-ini">Início</label>'+
+        '<input class="ent" id="mt-ini" type="date" value="'+isoDe(t.ini)+'" data-campo="ini" data-id="'+t.id+'">'+
+        '<span class="f-dica">Onde a barra desta tarefa começa no cronograma. Por padrão, o dia em que ela foi criada.</span></div>'+
 
       '<div class="campo"><label for="mt-d">Prazo</label>'+
         '<input class="ent" id="mt-d" type="date" value="'+isoDe(t.d)+'" data-campo="d" data-id="'+t.id+'"></div>'+
@@ -2260,6 +2471,9 @@ function vModalNovaTarefa(pid, col){
         '<select class="ent" id="nt-ent">'+ opcoesEntrega(alvo, null) +'</select>'+
         '<span class="f-dica">A que item da backlog esta tarefa serve. Trocar o projeto acima atualiza a lista.</span></div>'+
       '<div class="campo"><label>Responsáveis</label>'+chipsQuem(E.novosQuems,'quem-novo',true)+'</div>'+
+      '<div class="campo"><label for="nt-ini">Início</label>'+
+        '<input class="ent" id="nt-ini" type="date" value="'+isoDe(0)+'">'+
+        '<span class="f-dica">Começa hoje, salvo se você mudar.</span></div>'+
       '<div class="campo"><label for="nt-d">Prazo</label>'+
         '<input class="ent" id="nt-d" type="date" value="'+isoDe(4)+'"></div>'+
       '<div class="campo"><label for="nt-desc">Descrição <span style="font-weight:500;color:var(--tinta-3)">(opcional)</span></label>'+
@@ -2707,7 +2921,7 @@ async function carregarEntregas(){
 async function carregarTarefas(){
   var rt = await consultar(function(){
     return sb.from('tarefas').select(
-      'id, projeto_id, entrega_id, sprint_id, dependencia_id, titulo, descricao, revisor_id, prazo, situacao, recorrencia'
+      'id, projeto_id, entrega_id, sprint_id, dependencia_id, titulo, descricao, revisor_id, inicio, prazo, situacao, recorrencia'
     );
   });
   if(!rt.data){ return; }
@@ -2745,7 +2959,7 @@ async function carregarTarefas(){
     TAREFAS.push({
       id: row.id, p: row.projeto_id, ent: row.entrega_id, spr: row.sprint_id, dep: row.dependencia_id,
       t: row.titulo, desc: row.descricao || '', qs: qsPorTarefa[row.id] || [], revisor: row.revisor_id,
-      d: offDe(row.prazo), s: row.situacao, rep: row.recorrencia,
+      ini: offDe(row.inicio), d: offDe(row.prazo), s: row.situacao, rep: row.recorrencia,
       subs: subsPorTarefa[row.id] || [], coments: comsPorTarefa[row.id] || [], anexos: anxPorTarefa[row.id] || []
     });
   });
@@ -3311,13 +3525,14 @@ var ACOES = {
     var desc = (document.getElementById('nt-desc').value || '').trim();
     var quems = E.novosQuems.slice();
     var prazo = offDe(document.getElementById('nt-d').value);
+    var ini = Math.min(offDe(document.getElementById('nt-ini').value), prazo);
     var situ = (col === 'revisao' ? 'afazer' : col);
     var entId = document.getElementById('nt-ent').value || null;
     var sprId = sp ? sp.id : null;
     (async function(){
       var ins = await sb.from('tarefas').insert({
         projeto_id: pid, titulo: titulo, descricao: desc,
-        prazo: isoDe(prazo), situacao: situ, sprint_id: sprId, entrega_id: entId
+        inicio: isoDe(ini), prazo: isoDe(prazo), situacao: situ, sprint_id: sprId, entrega_id: entId
       }).select().single();
       if(ins.error){ E.erroCrud = 'Não consegui criar. Tenta de novo.'; render(); return; }
       if(quems.length){
@@ -3327,7 +3542,7 @@ var ACOES = {
         if(insQ.error) console.error('Não consegui salvar responsáveis:', insQ.error);
       }
       var nova = {
-        id: ins.data.id, p:pid, t:titulo, desc:desc, qs:quems, d:prazo, s:situ,
+        id: ins.data.id, p:pid, t:titulo, desc:desc, qs:quems, ini:ini, d:prazo, s:situ,
         spr:sprId, ent:entId, dep:null, revisor:null, rep:null,
         subs:[], coments:[], anexos:[]
       };
@@ -3513,7 +3728,16 @@ document.addEventListener('change', function(ev){
   var t = tarefa(id); if(!t) return;
   var patchT = null;
   if(c === 't')    { t.t = el.value.trim() || t.t; el.value = t.t; patchT = { titulo: t.t }; }
-  if(c === 'd')    { t.d = offDe(el.value); patchT = { prazo: isoDe(t.d) }; }
+  /* Ninguém termina antes de começar: mexer numa ponta empurra a
+     outra em vez de recusar o que a pessoa digitou. */
+  if(c === 'ini')  {
+    t.ini = offDe(el.value); patchT = { inicio: isoDe(t.ini) };
+    if(t.ini > t.d){ t.d = t.ini; patchT.prazo = isoDe(t.d); }
+  }
+  if(c === 'd')    {
+    t.d = offDe(el.value); patchT = { prazo: isoDe(t.d) };
+    if(t.ini > t.d){ t.ini = t.d; patchT.inicio = isoDe(t.ini); }
+  }
   if(c === 'desc') { t.desc = el.value.trim(); patchT = { descricao: t.desc }; }
   if(c === 'ent')  { t.ent = el.value || null; patchT = { entrega_id: t.ent }; }
   if(c === 'rep')  { t.rep = el.value || null; patchT = { recorrencia: t.rep }; }
