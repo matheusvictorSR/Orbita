@@ -1396,6 +1396,19 @@ details.av-mais[open] > summary .chevron{ transform: rotate(90deg); }
   .cab-vista h1{ font-size: 25px; }
   .cab-vista .dir{ margin-left:0; width:100%; }
 
+  /* Cabeçalho do Espaço: título e botões dividiam uma linha que não
+     quebrava. O nome espremia em quatro linhas e os botões vazavam
+     para fora do cartão — que tem overflow:hidden, daí o corte. */
+  .esp-cab{ padding: 20px 18px 18px; }
+  /* Fluxo de bloco, não flex com quebra: num flex o texto não
+     encolhe, ele pula de linha inteiro — e o ponto ficava sozinho
+     numa linha só dele. Assim o ponto volta a ser marcador do
+     título e os botões descem para depois dele. */
+  .esp-cab h1{ display:block; }
+  .esp-cab h1 .ponto{ display:inline-block; vertical-align:middle; margin-right:10px; }
+  .esp-cab h1 .dir{ display:flex; margin-left:0; margin-top:14px; }
+  .esp-num{ gap: 18px; flex-wrap: wrap; }
+
   /* Quatro abas não cabem em 375: rolam na horizontal, sem barra. */
   .seg{ max-width:100%; overflow-x:auto; scrollbar-width:none; }
   .seg::-webkit-scrollbar{ display:none; }
