@@ -4,6 +4,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Órbita — gestão de projetos</title>
+<link rel="icon" type="image/svg+xml" href="icone.svg">
+<link rel="icon" type="image/png" sizes="32x32" href="icone-32.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icone-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#5B4BFF">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -1469,7 +1475,12 @@ function equipeDo(pid){
 /* ---------- ícones ---------- */
 var I = {
   logo:  '<svg width="23" height="23" viewBox="0 0 40 32" fill="none" aria-hidden="true">'+
-         '<ellipse cx="16" cy="17" rx="14.5" ry="5.8" transform="rotate(-16 16 17)" stroke="#5B4BFF" stroke-width="2.3"/>'+
+         '<mask id="orb-anel" maskUnits="userSpaceOnUse" x="0" y="0" width="40" height="32">'+
+         '<rect width="40" height="32" fill="#fff"/>'+
+         '<circle cx="16" cy="17" r="8.8" fill="#000"/>'+
+         '<circle cx="31.3" cy="12.3" r="4.5" fill="#000"/>'+
+         '</mask>'+
+         '<ellipse cx="16" cy="17" rx="14.5" ry="5.8" transform="rotate(-16 16 17)" stroke="#5B4BFF" stroke-width="2.3" mask="url(#orb-anel)"/>'+
          '<circle cx="16" cy="17" r="7.4" fill="#5B4BFF"/>'+
          '<circle cx="31.3" cy="12.3" r="3.1" fill="#5B4BFF"/>'+
          '</svg>',

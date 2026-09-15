@@ -54,6 +54,8 @@ Isso só funciona porque o acento mora no elemento `<html>`, que sobrevive a cad
 
 **A logo é a exceção — fica sempre no azul de marca (`#5B4BFF`), não segue o acento do Espaço.** É a identidade do produto, não um indicador de navegação. O ícone é um planeta com um objeto em órbita, cor sólida, sem gradiente.
 
+O mesmo desenho vira o ícone da aba do navegador e do atalho, em branco sobre um quadrado azul (`icone.svg` e os PNGs 32/192/512, mais `apple-touch-icon.png` para a tela de início do iPhone). O `manifest.webmanifest` é o que permite instalar o Órbita como aplicativo. Os PNGs são gerados a partir do SVG — se o desenho mudar, gerar de novo, não editar o PNG.
+
 Seis matizes disponíveis para Espaços: índigo, rosa, menta, âmbar, ciano e violeta.
 
 Cada matiz tem **quatro tons**, e a distinção importa:
