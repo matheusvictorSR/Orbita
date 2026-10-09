@@ -116,6 +116,10 @@ Esta é a **única cor do app que não segue o acento do Espaço** — o fluxo d
 
 **Arrastar ficou mais fácil.** Antes só o topo da lista aceitava a soltura. Agora o alvo é a **coluna inteira** — cabeçalho, espaço vazio, o miolo entre cartões — e ela inteira se acende com um retângulo tracejado mostrando onde o cartão vai cair.
 
+**A coluna tem teto e rola por dentro.** Uma coluna que só acumula — "Feito", sempre — esticava o quadro inteiro para baixo e empurrava as outras três para fora da tela. Agora a lista para de crescer em 56% da altura da janela e rola dentro da própria baia; o cabeçalho, com a contagem e o "+", fica parado. O teto é em proporção da tela, não em pixels: num monitor alto cabe mais cartão. Como todas as baias terminam na mesma linha, o quadro inteiro cabe na tela sem rolar a página.
+
+A barra de rolagem usa **a cor da própria baia**, não um cinza genérico — mesma ideia das quatro molduras. No telefone ela devolve a rolagem para a página ao chegar no fim; no computador segura, para o scroll do mouse ficar previsível.
+
 **A ordem dentro da coluna é a do movimento mais recente**, não a do prazo: o que acabou de chegar na coluna aparece no topo. Antes, "Feito" abria pelo primeiro cartão que alguém tinha concluído, que é o que menos interessa olhar. A tarefa guarda a hora em que mudou de coluna (`movido_em`, migração 7) — criar também conta como movimento. Vale igual na Lista, que é a mesma coluna em outro formato. Empate cai no prazo, que era a ordem antiga.
 
 **Só há dois jeitos de mudar a fase de uma tarefa:** arrastar o cartão, ou trocar a etiqueta de Situação dentro da tarefa. Não existe seta no cartão, não existe tique de concluir na lista, e o rodapé da tarefa não tem botão de "Concluir" — ele só fecha. Mover é sempre um gesto deliberado.

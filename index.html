@@ -697,7 +697,32 @@ ul{ margin:0; padding:0; list-style:none; }
 .col-cab .b-i{ margin-left:auto; width:24px; height:24px; border-radius:7px; color: var(--ct); }
 .col-cab .b-i:hover{ background: color-mix(in oklab, var(--cc) 15%, transparent); }
 
-.col-lista{ display:flex; flex-direction:column; gap:9px; flex:1; min-height: 92px; }
+/* A coluna para de crescer sem fim: a lista rola por dentro e o
+   cabeçalho (contagem e o "+") fica sempre à vista. O teto é em vh
+   para acompanhar a tela — num monitor alto cabe mais cartão. */
+.col-lista{
+  display:flex; flex-direction:column; gap:9px; flex:1;
+  min-height: 92px;
+  max-height: 56vh; max-height: 56dvh;
+  overflow-y: auto; overflow-x: hidden;
+  padding-right: 2px;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in oklab, var(--cc) 38%, transparent) transparent;
+}
+/* A barra de rolagem usa a cor da própria baia, não um cinza
+   genérico — é a mesma ideia das quatro molduras. */
+.col-lista::-webkit-scrollbar{ width: 8px; }
+.col-lista::-webkit-scrollbar-track{ background: transparent; }
+.col-lista::-webkit-scrollbar-thumb{
+  background: color-mix(in oklab, var(--cc) 34%, transparent);
+  border: 2px solid transparent; background-clip: padding-box;
+  border-radius: 99px;
+}
+.col-lista::-webkit-scrollbar-thumb:hover{
+  background: color-mix(in oklab, var(--cc) 58%, transparent);
+  border: 2px solid transparent; background-clip: padding-box;
+}
 
 /* Alvo de soltura: a COLUNA INTEIRA, não só o topo da lista. */
 .col.sobre{
@@ -1415,6 +1440,12 @@ details.av-mais[open] > summary .chevron{ transform: rotate(90deg); }
   .seg button{ flex:none; }
 
   .veu{ padding: 10px; }
+
+  /* No computador a coluna segura a rolagem (o scroll do mouse fica
+     previsível). No telefone não: a coluna ocupa a largura toda, e
+     prender a rolagem no fim dela deixaria o dedo sem saída — aqui
+     ela devolve a rolagem para a página. */
+  .col-lista{ overscroll-behavior: auto; }
 
   /* Cronograma: com a coluna de nomes de computador sobravam 122px
      de gráfico, quatro dias. Nome mais curto e dia mais estreito
